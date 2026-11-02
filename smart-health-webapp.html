@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="ur"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0f766e"><meta name="mobile-web-app-capable" content="yes"><title>Smart Health</title><style>html{padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui}[hidden]{display:none!important}</style><style>
+/* Layout: one-screen app shell — sticky top bar, scrolling content, fixed bottom tab bar. Teal/white/light-green clinical identity. */
+:root{
+  --bg:#f4f8f7; --surface:#ffffff; --surface2:#e8f3f0; --fg:#122322; --muted:#5a6f6c; --line:#d3e3df;
+  --accent:#0f766e; --accent-fg:#ffffff; --accent-soft:#d9f1ec; --green:#5fbf7a; --green-soft:#e3f5e8;
+  --warn:#b7791f; --warn-soft:#fbf0d9; --bad:#c0392b; --bad-soft:#fae1dd; --good:#1f8a5a;
+  --f-urdu:"Noto Naskh Arabic","Noto Sans Arabic",system-ui,sans-serif; --f-urdu-display:"Noto Nastaliq Urdu","Noto Naskh Arabic",system-ui,sans-serif;
+  --f-latin:system-ui,Roboto,sans-serif; --radius:14px; --shadow:0 1px 2px rgba(18,35,34,.06),0 4px 14px rgba(18,35,34,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0c1917; --surface:#132524; --surface2:#1a302e; --fg:#e6f1ee; --muted:#9bb3ae; --line:#27423e;
+  --accent:#2dd4bf; --accent-fg:#06201c; --accent-soft:#163c37; --green:#6ee19a; --green-soft:#17352a;
+  --warn:#f1c27d; --warn-soft:#3d2f14; --bad:#ff8a7a; --bad-soft:#3f1b17; --good:#6ee19a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1917; --surface:#132524; --surface2:#1a302e; --fg:#e6f1ee; --muted:#9bb3ae; --line:#27423e;
+  --accent:#2dd4bf; --accent-fg:#06201c; --accent-soft:#163c37; --green:#6ee19a; --green-soft:#17352a;
+  --warn:#f1c27d; --warn-soft:#3d2f14; --bad:#ff8a7a; --bad-soft:#3f1b17; --good:#6ee19a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25); color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-urdu);font-size:16px;line-height:1.75;margin:0;display:flex;flex-direction:column}
+body[dir="ltr"]{font-family:var(--f-latin);line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--accent)}
+*{box-sizing:border-box}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.5}
+body[dir="rtl"] h1,body[dir="rtl"] h2{font-family:var(--f-urdu-display);line-height:2}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--accent);color:var(--accent-fg);padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;align-items:center;gap:10px}
+.top h1{font-size:1.15rem;font-weight:600;flex:1;min-width:0;line-height:1.6}
+.top .brand{display:flex;align-items:center;gap:8px}
+.logo{width:30px;height:30px;flex:none}
+.iconbtn{background:rgba(255,255,255,.18);border:0;color:inherit;border-radius:10px;width:36px;height:36px;display:grid;place-items:center;cursor:pointer;font:inherit;font-size:1rem}
+.iconbtn:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+main{flex:1;min-height:0;overflow-y:auto;padding-block:14px 90px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.view{display:flex;flex-direction:column;gap:14px;max-width:720px;margin-inline:auto}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+.card h2{font-size:1.05rem;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.card h3{font-size:.95rem;font-weight:600;color:var(--muted);margin-top:8px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:380px){.grid3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface2);border-radius:12px;padding:10px 12px;min-width:0}
+.tile .lbl{font-size:.78rem;color:var(--muted);letter-spacing:.02em}
+.tile .val{font-size:1.35rem;font-weight:700;font-family:var(--f-latin);font-variant-numeric:tabular-nums;line-height:1.3}
+.tile .sub{font-size:.75rem;color:var(--muted)}
+.bar{height:9px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-top:6px}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .3s}
+.bar>i.ok{background:var(--green)}.bar>i.over{background:var(--warn)}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.row>*{min-width:0}
+.spread{justify-content:space-between}
+.muted{color:var(--muted);font-size:.85rem}
+.small{font-size:.8rem}
+.num{font-family:var(--f-latin);font-variant-numeric:tabular-nums}
+button,.btn{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:8px 14px;line-height:1.4}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:transparent;font-weight:600}
+.btn.soft{background:var(--accent-soft);color:var(--fg);border-color:transparent}
+.btn.danger{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.btn.sm{padding:4px 10px;font-size:.85rem;border-radius:8px}
+.btn.block{width:100%}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:.88rem;color:var(--muted);min-width:0}
+input,select,textarea{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%;min-width:0}
+input[type="number"]{font-family:var(--f-latin)}
+textarea{min-height:70px;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface2);border-radius:99px;padding:3px 11px;font-size:.85rem;cursor:pointer}
+.chip.on{background:var(--accent);color:var(--accent-fg);border-color:transparent}
+.pill{display:inline-block;border-radius:99px;padding:1px 9px;font-size:.75rem;font-weight:600;background:var(--surface2);color:var(--muted)}
+.pill.good{background:var(--green-soft);color:var(--good)}.pill.warn{background:var(--warn-soft);color:var(--warn)}.pill.bad{background:var(--bad-soft);color:var(--bad)}.pill.accent{background:var(--accent-soft);color:var(--accent)}
+.list{display:flex;flex-direction:column;gap:6px}
+.item{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.item .t{flex:1;min-width:0}
+.item .t b{display:block;font-weight:600}
+.item .t span{font-size:.8rem;color:var(--muted)}
+.notice{border-radius:12px;padding:10px 12px;font-size:.9rem;border:1px solid}
+.notice.info{background:var(--accent-soft);border-color:transparent}
+.notice.warn{background:var(--warn-soft);border-color:transparent;color:var(--fg)}
+.notice.bad{background:var(--bad-soft);border-color:transparent;color:var(--fg)}
+.notice.bad b,.notice.warn b{color:inherit}
+.tabs{display:flex;gap:4px;background:var(--surface2);padding:4px;border-radius:12px;overflow-x:auto}
+.tabs button{flex:1;border:0;background:transparent;border-radius:9px;padding:6px 8px;white-space:nowrap;font-size:.9rem}
+.tabs button.on{background:var(--surface);font-weight:600;box-shadow:var(--shadow)}
+nav.bottom{position:fixed;bottom:0;left:0;right:0;z-index:9;background:var(--surface);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom,0px);padding-left:max(4px,env(safe-area-inset-left,0px));padding-right:max(4px,env(safe-area-inset-right,0px))}
+nav.bottom button{flex:1;border:0;background:transparent;color:var(--muted);padding:7px 2px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.72rem;line-height:1.3;border-radius:0}
+nav.bottom button svg{width:22px;height:22px}
+nav.bottom button.on{color:var(--accent);font-weight:600}
+.menu{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.menu button{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px;border-radius:14px;background:var(--surface);font-size:.85rem}
+.menu button svg{width:26px;height:26px;color:var(--accent)}
+.chartbox{position:relative;height:200px;width:100%}
+.chartbox.tall{height:240px}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:.8rem}
+td.num,th.num{font-family:var(--f-latin);font-variant-numeric:tabular-nums;text-align:end}
+.tablewrap{overflow-x:auto;max-width:100%}
+.sheet{position:fixed;inset:0;background:rgba(5,20,18,.55);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet .panel{background:var(--surface);width:100%;max-width:720px;max-height:92%;border-radius:18px 18px 0 0;padding:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.sheet .panel h2{font-size:1.05rem}
+.toast{position:fixed;bottom:calc(76px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 16px;border-radius:99px;font-size:.9rem;z-index:30;box-shadow:var(--shadow);max-width:90%}
+.sev{display:flex;gap:4px}
+.sev button{flex:1;padding:6px 0;font-family:var(--f-latin)}
+.sev button.on{background:var(--accent);color:var(--accent-fg);border-color:transparent}
+.bubble{padding:9px 12px;border-radius:14px;max-width:88%;font-size:.95rem;white-space:pre-wrap}
+.bubble.me{background:var(--accent);color:var(--accent-fg);align-self:flex-end}
+.bubble.ai{background:var(--surface2);align-self:flex-start}
+.chat{display:flex;flex-direction:column;gap:8px;min-height:160px}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:4px;vertical-align:middle}
+.report{font-size:.9rem;white-space:pre-wrap;background:var(--surface2);padding:12px;border-radius:10px;font-family:var(--f-latin);direction:ltr;text-align:left;max-height:50vh;overflow:auto}
+.hero{background:linear-gradient(135deg,var(--accent),#2a9d8f 60%,var(--green));color:#fff;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:4px}
+.hero .big{font-size:2rem;font-weight:700;font-family:var(--f-latin);line-height:1.2}
+.hero .muted{color:rgba(255,255,255,.85)}
+details summary{cursor:pointer;font-weight:600}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.hidden{display:none!important}
+</style></head><body>
+<script>
+/* Minimal offline chart renderer (SVG) with a Chart.js-like config: type bar|line, data.labels, datasets[{label,data,backgroundColor|borderColor,borderDash,pointRadius}], options.scales.y.{min,max,beginAtZero,stacked} */
+window.Chart=function(canvas,cfg){
+  const host=canvas.parentNode;const W=host.clientWidth||340,H=host.clientHeight||200;
+  const labels=cfg.data.labels||[],ds=cfg.data.datasets||[];const sc=(cfg.options&&cfg.options.scales&&cfg.options.scales.y)||{};
+  const stacked=!!sc.stacked;const col=d=>(Array.isArray(d.backgroundColor)?null:(d.borderColor||d.backgroundColor||Chart.defaults.color));
+  let vals=[];ds.forEach(d=>d.data.forEach(v=>{if(v!=null)vals.push(+v)}));
+  if(stacked){vals=labels.map((_,j)=>ds.reduce((a,d)=>a+(+d.data[j]||0),0))}
+  let max=sc.max!=null?sc.max:Math.max(1,...vals.map(v=>v||0));let min=sc.min!=null?sc.min:(sc.beginAtZero||cfg.type==="bar"?0:Math.min(...vals,max));
+  if(sc.max==null)max=max*1.1;if(max===min)max=min+1;
+  const padL=36,padR=8,padT=ds.some(d=>d.label)?22:8,padB=20;const cw=W-padL-padR,ch=H-padT-padB;
+  const Y=v=>padT+ch-(v-min)/(max-min)*ch;const X=j=>padL+(labels.length>1?j/(labels.length-1)*cw:cw/2);
+  const muted=Chart.defaults.color,line=Chart.defaults.borderColor;const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="font-family:${Chart.defaults.font.family||'sans-serif'};font-size:10px;direction:ltr">`;
+  const ticks=4;for(let i=0;i<=ticks;i++){const v=min+(max-min)*i/ticks;const y=Y(v);s+=`<line x1="${padL}" x2="${W-padR}" y1="${y}" y2="${y}" stroke="${line}" stroke-width="1"/><text x="${padL-4}" y="${y+3}" text-anchor="end" fill="${muted}">${Math.round(v*10)/10}</text>`}
+  const step=labels.length>8?Math.ceil(labels.length/6):1;labels.forEach((l,j)=>{if(j%step===0)s+=`<text x="${cfg.type==="bar"?padL+(j+0.5)*cw/labels.length:X(j)}" y="${H-6}" text-anchor="middle" fill="${muted}">${esc(l)}</text>`});
+  if(cfg.type==="bar"){const gw=cw/labels.length,n=stacked?1:ds.length,bw=Math.min(28,gw*0.7/n);const acc=labels.map(()=>0);
+    ds.forEach((d,i)=>d.data.forEach((v,j)=>{if(v==null)return;const c=Array.isArray(d.backgroundColor)?d.backgroundColor[j]:col(d);const base=stacked?acc[j]:0;const y0=Y(base),y1=Y(base+v);const x=padL+j*gw+(gw-bw*n)/2+(stacked?0:i*bw);s+=`<rect x="${x}" y="${Math.min(y0,y1)}" width="${bw}" height="${Math.max(1,Math.abs(y0-y1))}" rx="3" fill="${c}"/>`;if(stacked)acc[j]+=v}))}
+  else{ds.forEach(d=>{const c=col(d);const pts=d.data.map((v,j)=>v==null?null:[X(j),Y(+v)]);let path="",pen=false;pts.forEach(p=>{if(!p){pen=false;return}path+=(pen?"L":"M")+p[0]+" "+p[1]+" ";pen=true});
+    if(d.fill){const f=pts.filter(Boolean);if(f.length)s+=`<path d="M${f[0][0]} ${Y(min)} ${f.map(p=>"L"+p[0]+" "+p[1]).join(" ")} L${f[f.length-1][0]} ${Y(min)} Z" fill="${c}" opacity=".15"/>`}
+    s+=`<path d="${path}" fill="none" stroke="${c}" stroke-width="${d.pointRadius===0?1.5:2.5}" stroke-linejoin="round" ${d.borderDash?`stroke-dasharray="${d.borderDash.join(" ")}"`:""}/>`;
+    if(d.pointRadius!==0)pts.forEach((p,j)=>{if(p)s+=`<circle cx="${p[0]}" cy="${p[1]}" r="${d.pointRadius||3}" fill="${Array.isArray(d.pointBackgroundColor)?d.pointBackgroundColor[j]:c}"/>`})})}
+  let lx=padL;ds.forEach(d=>{if(!d.label)return;const c=Array.isArray(d.backgroundColor)?d.backgroundColor[0]:col(d);s+=`<rect x="${lx}" y="4" width="10" height="10" rx="2" fill="${c}"/><text x="${lx+13}" y="13" fill="${muted}">${esc(d.label)}</text>`;lx+=16+String(d.label).length*5.5+10});
+  s+="</svg>";host.innerHTML=s;this.destroy=()=>{};
+};
+Chart.defaults={color:"#888",borderColor:"#ddd",font:{}};
+</script>
+
+<header class="top">
+  <div class="brand"><svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12" fill="#ffffff" opacity=".18"/><path d="M24 40s-13-8.4-13-18.5C11 15.6 15.3 12 19.6 12c2.3 0 3.6 1 4.4 2.2.8-1.2 2.1-2.2 4.4-2.2 4.3 0 8.6 3.6 8.6 9.5C37 31.6 24 40 24 40z" fill="#fff"/><path d="M15 27h5l2-5 3 9 2.5-6 1.5 2h6" fill="none" stroke="#0f766e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+  <h1 id="title">سمارٹ ہیلتھ</h1>
+  <button class="iconbtn" id="langBtn" title="Language">EN</button>
+  <button class="iconbtn" id="themeBtn" title="Theme">◐</button>
+</header>
+<main id="main"><div class="view" id="view"></div></main>
+<nav class="bottom" id="nav"></nav>
+<div id="overlay"></div>
+
+<script>
+/* ============ FOOD DATABASE ============
+   Values per 100 g (cooked unless stated). src: "USDA" = USDA FoodData Central SR Legacy (values rounded).
+   est:true = recipe-based estimate (Pakistani dishes / typical labels) — NOT laboratory data; verify with your dietitian.
+   pur = purines mg/100g, approximate, from Kaneko et al. 2014 (Biol Pharm Bull 37:709) where available; null = no reliable data.
+   Fields: id, ur, en, cat, state(raw/cooked/na), kcal, p, c, f, fib, ca, fe, mg, k, na, pur, src, est, serv:[label_ur,label_en,grams] */
+const FOODS=[
+["chk_breast","مرغی کا سینہ (بغیر چھلکا، بھنا)","Chicken breast, roasted, skinless","meat","cooked",165,31,0,3.6,0,15,1,29,256,74,141,"USDA",0,["۱ چھوٹا ٹکڑا","1 small piece",85]],
+["chk_thigh","مرغی کی ران (بغیر چھلکا)","Chicken thigh, roasted, skinless","meat","cooked",209,26,0,10.9,0,12,1.3,24,230,82,null,"USDA",0,["۱ ران","1 thigh",80]],
+["chk_liver","مرغی کی کلیجی (پکی)","Chicken liver, cooked","meat","cooked",167,24.5,0.9,6.5,0,11,11.6,25,263,76,312,"USDA",0,["۱ کلیجی","1 liver",44]],
+["egg","انڈا (ابلا ہوا)","Egg, whole, hard-boiled","egg","cooked",155,12.6,1.1,10.6,0,50,1.2,10,126,124,null,"USDA",0,["۱ انڈا","1 egg",50]],
+["egg_white","انڈے کی سفیدی","Egg white, raw","egg","raw",52,10.9,0.7,0.2,0,7,0.1,11,163,166,null,"USDA",0,["۱ انڈے کی سفیدی","1 egg white",33]],
+["beef_lean","گائے کا گوشت (دبلا، پکا)","Beef, lean, cooked","meat","cooked",250,26,0,15,0,18,2.6,21,318,75,110,"USDA",0,["۱ چھوٹا ٹکڑا","1 small piece",85]],
+["mutton","بکرے کا گوشت (دبلا، پکا)","Mutton/lamb, lean, cooked","meat","cooked",206,25,0,11,0,13,1.9,25,290,72,null,"USDA",0,["۱ چھوٹا ٹکڑا","1 small piece",85]],
+["beef_liver","گائے کی کلیجی (پکی)","Beef liver, cooked","meat","cooked",191,29,5.1,5.3,0,6,6.5,21,352,79,220,"USDA",0,["۱ ٹکڑا","1 slice",68]],
+["carp","مچھلی (رہو/کارپ، پکی)","Fish, carp (rohu type), cooked","fish","cooked",162,22.9,0,7.2,0,52,1.6,38,427,63,null,"USDA",0,["۱ ٹکڑا","1 piece",85]],
+["tilapia","تلاپیہ مچھلی (پکی)","Tilapia, cooked","fish","cooked",128,26,0,2.7,0,14,0.7,34,380,56,null,"USDA",0,["۱ ٹکڑا","1 fillet",87]],
+["sardine","سارڈین (ڈبہ بند، تیل میں)","Sardines, canned in oil","fish","cooked",208,24.6,0,11.5,0,382,2.9,39,397,307,210,"USDA",0,["۱ سارڈین","1 sardine",12]],
+["tuna","ٹونا (ڈبہ بند، پانی میں)","Tuna, canned in water","fish","cooked",116,25.5,0,0.8,0,12,1.5,27,237,320,157,"USDA",0,["آدھا ڈبہ","half can",70]],
+["shrimp","جھینگا (پکا)","Shrimp, cooked","fish","cooked",99,24,0.2,0.3,0,70,0.5,39,259,111,143,"USDA",0,["۵ جھینگے","5 shrimp",30]],
+["masoor","مسور کی دال (پکی)","Lentils (masoor), boiled","dal","cooked",116,9,20.1,0.4,7.9,19,3.3,36,369,2,null,"USDA",0,["۱ کٹوری","1 bowl",150]],
+["chana_boiled","کابلی چنا (ابلا ہوا)","Chickpeas, boiled","dal","cooked",164,8.9,27.4,2.6,7.6,49,2.9,48,291,7,null,"USDA",0,["۱ کٹوری","1 bowl",150]],
+["chana_dal","چنے کی دال (پکی، اندازہ)","Chana dal, cooked (estimate)","dal","cooked",150,8.5,25,2.5,7,45,2.8,45,280,5,null,"Estimate from chickpea data",1,["۱ کٹوری","1 bowl",150]],
+["rajma","راجما / لوبیا (ابلا)","Kidney beans, boiled","dal","cooked",127,8.7,22.8,0.5,6.4,28,2.9,45,403,2,null,"USDA",0,["۱ کٹوری","1 bowl",150]],
+["mung","مونگ کی دال (پکی)","Mung beans, boiled","dal","cooked",105,7,19.2,0.4,7.6,27,1.4,48,266,2,null,"USDA",0,["۱ کٹوری","1 bowl",150]],
+["rice_white","سفید چاول (پکے)","White rice, cooked","grain","cooked",130,2.7,28.2,0.3,0.4,10,1.2,12,35,1,null,"USDA",0,["۱ کٹوری","1 bowl",150]],
+["rice_brown","براؤن چاول (پکے)","Brown rice, cooked","grain","cooked",123,2.7,25.6,1,1.6,3,0.6,39,86,4,null,"USDA",0,["۱ کٹوری","1 bowl",150]],
+["roti","روٹی / چپاتی (گندم)","Roti / chapati, whole wheat","grain","cooked",297,7.6,47.4,7.5,9.7,30,2.8,55,180,330,null,"USDA (commercial)",0,["۱ روٹی","1 roti",45]],
+["naan","نان (سادہ)","Naan, plain","grain","cooked",291,9.6,50.4,5.1,2.2,30,3,28,120,420,null,"USDA (commercial)",0,["۱ نان","1 naan",90]],
+["bread_white","سفید ڈبل روٹی","White bread","grain","na",266,8.9,49.4,3.3,2.7,151,3.6,23,115,477,null,"USDA",0,["۱ سلائس","1 slice",28]],
+["atta","گندم کا آٹا (خشک)","Whole wheat flour (atta), dry","grain","raw",340,13.2,72,2.5,10.7,34,3.6,137,363,2,null,"USDA",0,["۱ کپ","1 cup",120]],
+["oats","جئی / اوٹس (خشک)","Oats, dry","grain","raw",389,16.9,66.3,6.9,10.6,54,4.7,177,429,2,null,"USDA",0,["۴ کھانے کے چمچ","4 tbsp",40]],
+["potato","آلو (ابلا)","Potato, boiled","veg","cooked",87,1.9,20.1,0.1,1.8,5,0.3,22,379,4,null,"USDA",0,["۱ درمیانہ","1 medium",150]],
+["spinach","پالک (پکی)","Spinach, boiled","veg","cooked",23,3,3.8,0.3,2.4,136,3.6,87,466,70,57,"USDA",0,["۱ کٹوری","1 bowl",100]],
+["okra","بھنڈی (پکی)","Okra, cooked","veg","cooked",22,1.9,4.5,0.2,3.2,77,0.3,36,135,6,null,"USDA",0,["۱ کٹوری","1 bowl",100]],
+["cauliflower","گوبھی (پکی)","Cauliflower, boiled","veg","cooked",23,1.8,4.1,0.5,2.3,16,0.3,9,142,15,null,"USDA",0,["۱ کٹوری","1 bowl",100]],
+["tomato","ٹماٹر (کچا)","Tomato, raw","veg","raw",18,0.9,3.9,0.2,1.2,10,0.3,11,237,5,null,"USDA",0,["۱ ٹماٹر","1 tomato",120]],
+["onion","پیاز (کچی)","Onion, raw","veg","raw",40,1.1,9.3,0.1,1.7,23,0.2,10,146,4,null,"USDA",0,["۱ پیاز","1 onion",110]],
+["cucumber","کھیرا","Cucumber, raw","veg","raw",15,0.7,3.6,0.1,0.5,16,0.3,13,147,2,null,"USDA",0,["۱ کھیرا","1 cucumber",200]],
+["carrot","گاجر (کچی)","Carrot, raw","veg","raw",41,0.9,9.6,0.2,2.8,33,0.3,12,320,69,null,"USDA",0,["۱ گاجر","1 carrot",60]],
+["karela","کریلا (پکا)","Bitter gourd, cooked","veg","cooked",19,0.8,4.3,0.2,2,9,0.4,16,319,6,null,"USDA",0,["۱ کٹوری","1 bowl",100]],
+["lauki","لوکی / کدو (پکا)","Bottle gourd, cooked","veg","cooked",15,0.6,3.7,0,1.2,24,0.3,11,170,2,null,"USDA",0,["۱ کٹوری","1 bowl",100]],
+["peas","مٹر (پکے)","Green peas, boiled","veg","cooked",84,5.4,15.6,0.2,5.5,27,1.5,39,271,3,null,"USDA",0,["۱ کٹوری","1 bowl",100]],
+["eggplant","بینگن (پکا)","Eggplant, cooked","veg","cooked",35,0.8,8.7,0.2,2.5,6,0.3,11,123,1,null,"USDA",0,["۱ کٹوری","1 bowl",100]],
+["cabbage","بند گوبھی (کچی)","Cabbage, raw","veg","raw",25,1.3,5.8,0.1,2.5,40,0.5,12,170,18,null,"USDA",0,["۱ کٹوری","1 bowl",80]],
+["apple","سیب","Apple, raw","fruit","raw",52,0.3,13.8,0.2,2.4,6,0.1,5,107,1,null,"USDA",0,["۱ سیب","1 apple",180]],
+["banana","کیلا","Banana, raw","fruit","raw",89,1.1,22.8,0.3,2.6,5,0.3,27,358,1,null,"USDA",0,["۱ کیلا","1 banana",118]],
+["orange","مالٹا / کینو","Orange, raw","fruit","raw",47,0.9,11.8,0.1,2.4,40,0.1,10,181,0,null,"USDA",0,["۱ مالٹا","1 orange",130]],
+["mango","آم","Mango, raw","fruit","raw",60,0.8,15,0.4,1.6,11,0.2,10,168,1,null,"USDA",0,["۱ کپ کٹا","1 cup sliced",165]],
+["guava","امرود","Guava, raw","fruit","raw",68,2.6,14.3,1,5.4,18,0.3,22,417,2,null,"USDA",0,["۱ امرود","1 guava",55]],
+["dates","کھجور","Dates","fruit","raw",282,2.5,75,0.4,8,39,1,43,656,2,null,"USDA",0,["۱ کھجور","1 date",8]],
+["grapes","انگور","Grapes, raw","fruit","raw",69,0.7,18.1,0.2,0.9,10,0.4,7,191,2,null,"USDA",0,["۱ کپ","1 cup",150]],
+["watermelon","تربوز","Watermelon, raw","fruit","raw",30,0.6,7.6,0.2,0.4,7,0.2,10,112,1,null,"USDA",0,["۱ کپ","1 cup",150]],
+["pomegranate","انار","Pomegranate, raw","fruit","raw",83,1.7,18.7,1.2,4,10,0.3,12,236,3,null,"USDA",0,["آدھا کپ دانے","half cup arils",87]],
+["papaya","پپیتا","Papaya, raw","fruit","raw",43,0.5,10.8,0.3,1.7,20,0.3,21,182,8,null,"USDA",0,["۱ کپ","1 cup",145]],
+["almond","بادام","Almonds","nuts","raw",579,21.2,21.6,49.9,12.5,269,3.7,270,733,1,null,"USDA",0,["۱۰ بادام","10 almonds",12]],
+["walnut","اخروٹ","Walnuts","nuts","raw",654,15.2,13.7,65.2,6.7,98,2.9,158,441,2,null,"USDA",0,["۴ اخروٹ","4 halves",14]],
+["peanut","مونگ پھلی","Peanuts, raw","nuts","raw",567,25.8,16.1,49.2,8.5,92,4.6,168,705,18,null,"USDA",0,["۱ مٹھی","1 handful",28]],
+["pista","پستہ","Pistachios","nuts","raw",560,20.2,27.2,45.3,10.6,105,3.9,121,1025,1,null,"USDA",0,["۱ مٹھی","1 handful",28]],
+["cashew","کاجو","Cashews","nuts","raw",553,18.2,30.2,43.9,3.3,37,6.7,292,660,12,null,"USDA",0,["۱ مٹھی","1 handful",28]],
+["milk_whole","دودھ (فل کریم)","Milk, whole","dairy","na",61,3.2,4.8,3.3,0,113,0,10,132,43,0,"USDA",0,["۱ کپ","1 cup",244]],
+["milk_skim","دودھ (بغیر بالائی)","Milk, skim","dairy","na",34,3.4,5,0.1,0,122,0,11,156,42,0,"USDA",0,["۱ کپ","1 cup",245]],
+["yogurt","دہی (سادہ)","Yogurt, plain, whole milk","dairy","na",61,3.5,4.7,3.3,0,121,0.1,12,155,46,0,"USDA",0,["۱ کٹوری","1 bowl",150]],
+["yogurt_lf","دہی (کم چکنائی)","Yogurt, plain, low-fat","dairy","na",63,5.3,7,1.6,0,183,0.1,17,234,70,0,"USDA",0,["۱ کٹوری","1 bowl",150]],
+["greek","یونانی دہی (بغیر چکنائی)","Greek yogurt, plain, nonfat","dairy","na",59,10.2,3.6,0.4,0,110,0.1,11,141,36,null,"USDA",0,["۱ کٹوری","1 bowl",150]],
+["paneer","پنیر (دیسی، اندازہ)","Paneer (estimate)","dairy","na",265,18,1.2,20.8,0,208,0.5,20,100,20,null,"Estimate (whole-milk paneer)",1,["۳ ٹکڑے","3 cubes",50]],
+["cheddar","چیڈر چیز","Cheddar cheese","dairy","na",403,22.9,1.3,33.1,0,710,0.1,27,76,653,null,"USDA",0,["۱ سلائس","1 slice",28]],
+["cottage","کاٹیج چیز (۲٪)","Cottage cheese, 2%","dairy","na",84,11,4.3,2.3,0,103,0.2,9,125,321,null,"USDA",0,["آدھا کپ","half cup",113]],
+["whey","وہے پروٹین پاؤڈر (عام لیبل)","Whey protein powder (typical label)","supp","na",370,85,5,2,0,300,0.5,50,400,200,null,"Typical product label — check your product",1,["۱ سکوپ","1 scoop",30]],
+["butter","مکھن","Butter","fat","na",717,0.9,0.1,81,0,24,0,2,24,643,null,"USDA",0,["۱ چمچ","1 tbsp",14]],
+["ghee","گھی","Ghee (clarified butter)","fat","na",876,0,0,99.5,0,4,0,0,5,2,null,"USDA",0,["۱ چمچ","1 tbsp",13]],
+["oil","تیل (کوکنگ)","Cooking oil","fat","na",884,0,0,100,0,0,0,0,0,0,null,"USDA",0,["۱ چمچ","1 tbsp",14]],
+["sugar","چینی","Sugar","sweet","na",387,0,100,0,0,1,0,0,2,1,null,"USDA",0,["۱ چائے کا چمچ","1 tsp",4]],
+["honey","شہد","Honey","sweet","na",304,0.3,82.4,0,0.2,6,0.4,2,52,4,null,"USDA",0,["۱ چمچ","1 tbsp",21]],
+["cola","کولا ڈرنک (فی ۱۰۰ ملی)","Cola soft drink (per 100 ml)","drink","na",37,0,9.6,0,0,2,0,0,2,4,null,"USDA",0,["۱ کین","1 can",330]],
+["juice_pack","ڈبہ بند میٹھا جوس (اندازہ)","Packaged sweetened juice (estimate)","drink","na",50,0.2,12,0,0.2,5,0.1,5,60,5,null,"Typical label",1,["۱ گلاس","1 glass",250]],
+["chai","چائے (دودھ، چینی، اندازہ)","Chai with milk & sugar (estimate)","drink","na",35,1,5.5,1.2,0,40,0,4,50,15,null,"Recipe estimate",1,["۱ کپ","1 cup",200]],
+["lassi","میٹھی لسی (اندازہ)","Sweet lassi (estimate)","drink","na",85,3,13,2,0,100,0,10,130,40,null,"Recipe estimate",1,["۱ گلاس","1 glass",250]],
+["karahi","چکن کڑاہی (اندازہ)","Chicken karahi (estimate)","dish","cooked",190,16,4,12,0.8,25,1,22,260,420,null,"Recipe estimate",1,["۱ کٹوری","1 bowl",150]],
+["aloo_gosht","آلو گوشت (اندازہ)","Aloo gosht (estimate)","dish","cooked",150,8,8,10,1.2,20,1,18,280,380,null,"Recipe estimate",1,["۱ کٹوری","1 bowl",150]],
+["biryani","چکن بریانی (اندازہ)","Chicken biryani (estimate)","dish","cooked",160,8,20,5.5,0.8,20,1,20,180,400,null,"Recipe estimate",1,["۱ پلیٹ","1 plate",250]],
+["pulao","چکن پلاؤ (اندازہ)","Chicken pulao (estimate)","dish","cooked",165,8,22,5,0.6,15,1,18,150,350,null,"Recipe estimate",1,["۱ پلیٹ","1 plate",250]],
+["nihari","نہاری (اندازہ)","Nihari (estimate)","dish","cooked",180,14,5,12,0.5,15,1.5,18,220,450,null,"Recipe estimate",1,["۱ کٹوری","1 bowl",150]],
+["haleem","حلیم (اندازہ)","Haleem (estimate)","dish","cooked",150,9,15,6,2.5,25,1.5,30,200,400,null,"Recipe estimate",1,["۱ کٹوری","1 bowl",150]],
+["chapli","چپلی کباب (اندازہ)","Chapli kabab (estimate)","dish","cooked",240,16,6,17,0.8,30,2,20,250,450,null,"Recipe estimate",1,["۱ کباب","1 kabab",80]],
+["seekh","سیخ کباب (اندازہ)","Seekh kabab (estimate)","dish","cooked",220,18,4,15,0.5,20,2,20,260,420,null,"Recipe estimate",1,["۱ سیخ","1 seekh",60]],
+["tikka","چکن تکہ (اندازہ)","Chicken tikka (estimate)","dish","cooked",180,25,2,8,0.2,15,1,28,280,450,null,"Recipe estimate",1,["۱ ٹکڑا","1 piece",100]],
+["sabzi","مکس سبزی (اندازہ)","Mixed vegetable curry (estimate)","dish","cooked",80,2,8,4.5,2.5,30,1,20,220,350,null,"Recipe estimate",1,["۱ کٹوری","1 bowl",150]],
+["palak_gosht","پالک گوشت (اندازہ)","Palak gosht (estimate)","dish","cooked",130,12,4,8,1.5,70,2.5,40,350,400,null,"Recipe estimate",1,["۱ کٹوری","1 bowl",150]],
+["keema","قیمہ (اندازہ)","Keema (estimate)","dish","cooked",200,16,3,14,0.5,15,2,18,260,420,null,"Recipe estimate",1,["۱ کٹوری","1 bowl",150]],
+["yakhni","چکن یخنی / سوپ (اندازہ)","Chicken yakhni soup (estimate)","dish","cooked",35,4,1,1.5,0,5,0.2,5,80,300,null,"Recipe estimate",1,["۱ کپ","1 cup",200]],
+["dal_tadka","دال فرائی / تڑکہ (اندازہ)","Dal with tadka (estimate)","dish","cooked",130,7,15,5,5,20,2.5,30,300,380,null,"Recipe estimate",1,["۱ کٹوری","1 bowl",150]],
+["paratha","پراٹھا (اندازہ)","Paratha (estimate)","dish","cooked",320,6,36,17,4,25,2.5,40,150,400,null,"Recipe estimate",1,["۱ پراٹھا","1 paratha",80]],
+["samosa","سموسہ (آلو، تلا، اندازہ)","Samosa, potato, fried (estimate)","dish","cooked",262,4.7,27,15,2.5,20,1.2,20,200,400,null,"Recipe estimate",1,["۱ سموسہ","1 samosa",60]],
+["kheer","کھیر (اندازہ)","Kheer (estimate)","dish","cooked",120,3.5,20,3.5,0.2,90,0.2,10,120,40,null,"Recipe estimate",1,["۱ کٹوری","1 bowl",120]],
+["biscuit","بسکٹ (سادہ، اندازہ)","Plain biscuit (estimate)","packaged","na",480,6,70,20,1.5,30,1.5,15,100,400,null,"Typical label",1,["۱ بسکٹ","1 biscuit",10]],
+["chips","چپس (پیکٹ)","Potato chips (packaged)","packaged","na",536,7,53,35,4.8,24,1.6,67,1275,525,null,"USDA",0,["۱ چھوٹا پیکٹ","1 small pack",28]],
+["ors","او آر ایس / الیکٹرولائٹ ڈرنک (اندازہ)","Electrolyte drink (estimate)","drink","na",8,0,2,0,0,0,0,0,80,100,null,"Typical label",1,["۱ گلاس","1 glass",250]]
+].map(r=>({id:r[0],ur:r[1],en:r[2],cat:r[3],state:r[4],kcal:r[5],p:r[6],c:r[7],f:r[8],fib:r[9],ca:r[10],fe:r[11],mg:r[12],k:r[13],na:r[14],pur:r[15],src:r[16],est:!!r[17],serv:r[18]}));
+const FOODMAP=Object.fromEntries(FOODS.map(f=>[f.id,f]));
+const NUTR=[["kcal","کیلوریز","Calories","kcal"],["p","پروٹین","Protein","g"],["c","کاربوہائیڈریٹ","Carbs","g"],["f","چکنائی","Fat","g"],["fib","فائبر","Fiber","g"],["ca","کیلشیم","Calcium","mg"],["fe","آئرن","Iron","mg"],["mg","میگنیشیم","Magnesium","mg"],["k","پوٹاشیم","Potassium","mg"],["na","سوڈیم","Sodium","mg"]];
+const CATS={meat:["گوشت/مرغی","Meat/Chicken"],fish:["مچھلی","Fish"],egg:["انڈے","Eggs"],dal:["دالیں","Dals/Beans"],grain:["روٹی/چاول","Rice/Bread"],veg:["سبزیاں","Vegetables"],fruit:["پھل","Fruits"],nuts:["خشک میوہ","Nuts"],dairy:["دودھ/دہی","Dairy"],supp:["پروٹین سپلیمنٹ","Protein supp."],fat:["تیل/گھی","Fats"],sweet:["میٹھا","Sweets"],drink:["مشروبات","Drinks"],dish:["پاکستانی کھانے","Pakistani dishes"],packaged:["پیکٹ والے","Packaged"]};
+const HIGH_FRUCTOSE=["cola","juice_pack","lassi","kheer"];
+
+/* Meal templates: [stage, goal tags, meal slot, items[[foodId, grams]] ] stages: liquid, puree, soft, regular */
+const MEALS=[
+["liquid",["bari"],"breakfast",[["milk_skim",150]]],["liquid",["bari"],"lunch",[["yakhni",150]]],["liquid",["bari"],"dinner",[["milk_skim",150]]],["liquid",["bari"],"snack",[["ors",150]]],
+["puree",["bari","hp"],"breakfast",[["greek",80]]],["puree",["bari","hp"],"lunch",[["masoor",80]]],["puree",["bari","hp"],"dinner",[["yakhni",120],["egg_white",60]]],["puree",["bari"],"snack",[["yogurt_lf",80]]],
+["soft",["bari","hp"],"breakfast",[["egg",50],["yogurt_lf",80]]],["soft",["bari","hp"],"lunch",[["chk_breast",60],["lauki",60]]],["soft",["bari","hp"],"dinner",[["tilapia",70],["cauliflower",50]]],["soft",["bari","hp"],"snack",[["cottage",80]]],
+["regular",["hp","lp"],"breakfast",[["egg",100],["roti",45],["tomato",60]]],["regular",["hp"],"breakfast",[["oats",40],["milk_skim",200],["almond",12]]],["regular",["lp"],"breakfast",[["yogurt_lf",150],["banana",118],["walnut",14]]],
+["regular",["hp","lp"],"lunch",[["chk_breast",100],["sabzi",120],["roti",45]]],["regular",["lp"],"lunch",[["masoor",150],["rice_brown",120],["cucumber",100]]],["regular",["hp"],"lunch",[["tikka",120],["cabbage",80],["roti",45]]],
+["regular",["hp","lp"],"dinner",[["tilapia",120],["okra",120],["roti",45]]],["regular",["lp"],"dinner",[["mung",150],["lauki",120],["roti",45]]],["regular",["hp"],"dinner",[["keema",120],["peas",80],["roti",45]]],
+["regular",["hp","lp"],"snack",[["greek",150],["apple",150]]],["regular",["lp"],"snack",[["guava",110],["peanut",20]]],["regular",["hp"],"snack",[["cottage",113],["orange",130]]]
+];
+
+/* ============ LABS ============ */
+const LABS=[["hb","ہیموگلوبن (CBC)","Hemoglobin (CBC)","g/dL"],["wbc","سفید خلیے (CBC)","WBC (CBC)","x10^9/L"],["plt","پلیٹلیٹس (CBC)","Platelets (CBC)","x10^9/L"],["ferritin","فیریٹن","Ferritin","ng/mL"],["iron","سیرم آئرن","Serum iron","µg/dL"],["tibc","TIBC","TIBC","µg/dL"],["b1","وٹامن B1","Vitamin B1","nmol/L"],["b12","وٹامن B12","Vitamin B12","pg/mL"],["folate","فولیٹ","Folate","ng/mL"],["vitd","وٹامن D","Vitamin D (25-OH)","ng/mL"],["ca","کیلشیم","Calcium","mg/dL"],["pth","PTH","PTH","pg/mL"],["mg","میگنیشیم","Magnesium","mg/dL"],["phos","فاسفورس","Phosphorus","mg/dL"],["zinc","زنک","Zinc","µg/dL"],["copper","کاپر","Copper","µg/dL"],["albumin","البیومن","Albumin","g/dL"],["tprot","کل پروٹین","Total protein","g/dL"],["creat","کریٹینین (گردے)","Creatinine (kidney)","mg/dL"],["urea","یوریا (گردے)","Urea (kidney)","mg/dL"],["alt","ALT (جگر)","ALT (liver)","U/L"],["ast","AST (جگر)","AST (liver)","U/L"],["uric","یورک ایسڈ","Uric acid","mg/dL"],["hba1c","HbA1c","HbA1c","%"],["chol","کل کولیسٹرول","Total cholesterol","mg/dL"],["ldl","LDL","LDL","mg/dL"],["hdl","HDL","HDL","mg/dL"],["tg","ٹرائی گلیسرائیڈ","Triglycerides","mg/dL"]];
+const SUPP_INGR=[["multi","بیریاٹرک ملٹی وٹامن","Bariatric multivitamin"],["b1","وٹامن B1","Vitamin B1"],["b12","وٹامن B12","Vitamin B12"],["d3","وٹامن D3","Vitamin D3"],["ca","کیلشیم سٹریٹ","Calcium citrate"],["fe","آئرن","Iron"],["mg","میگنیشیم","Magnesium"],["zn","زنک","Zinc"],["cu","کاپر","Copper"],["other","دیگر","Other"]];
+const SYMPTOMS=[["weak","کمزوری / تھکن","Weakness / fatigue"],["hair","بال گرنا","Hair loss"],["numb","سن ہونا / جھنجھناہٹ","Numbness / tingling"],["cramp","پٹھوں کا کھنچاؤ","Muscle cramps"],["joint","جوڑوں کا درد","Joint pain"],["back","کمر درد","Back pain"],["knee","گھٹنوں کا درد","Knee pain"],["nausea","متلی","Nausea"],["vomit","قے","Vomiting"],["constip","قبض","Constipation"],["diarr","اسہال","Diarrhea"],["reflux","جلن / ریفلکس","Reflux"],["dump","ڈمپنگ (پسینہ، چکر، کمزوری)","Dumping symptoms"],["sleep","نیند خراب","Poor sleep"],["mood","موڈ / توانائی کم","Low mood / energy"]];
+
+/* ============ STRINGS ============ */
+const S={
+app:["سمارٹ ہیلتھ","Smart Health"],home:["ہوم","Home"],food:["خوراک","Food"],water:["پانی","Water"],supp:["سپلیمنٹ","Supplements"],more:["مزید","More"],
+profile:["پروفائل","Profile"],bari:["بیریاٹرک","Bariatric"],labs:["ٹیسٹ رپورٹس","Lab results"],uric:["یورک ایسڈ","Uric acid"],sym:["علامات ڈائری","Symptoms"],plan:["کھانے کا پلان","Meal planner"],ai:["ہیلتھ اسسٹنٹ","Assistant"],reports:["رپورٹس","Reports"],settings:["ترتیبات","Settings"],appt:["ڈاکٹر اپائنٹمنٹ","Appointments"],weight:["وزن","Weight"],privacy:["پرائیویسی","Privacy"],
+save:["محفوظ کریں","Save"],add:["شامل کریں","Add"],del:["حذف","Delete"],edit:["ترمیم","Edit"],cancel:["منسوخ","Cancel"],close:["بند کریں","Close"],today:["آج","Today"],week:["ہفتہ","Week"],
+name:["نام","Name"],age:["عمر (سال)","Age (years)"],gender:["جنس","Gender"],male:["مرد","Male"],female:["عورت","Female"],height:["قد (سینٹی میٹر)","Height (cm)"],curw:["موجودہ وزن (کلو)","Current weight (kg)"],startw:["ابتدائی وزن (کلو)","Starting weight (kg)"],targetw:["ہدف وزن (کلو)","Target weight (kg)"],
+activity:["سرگرمی کی سطح","Activity level"],act1:["بہت کم (بیٹھے رہنا)","Sedentary"],act2:["ہلکی","Light"],act3:["درمیانی","Moderate"],act4:["زیادہ","Active"],
+conditions:["طبی بیماریاں","Medical conditions"],allergies:["الرجی / عدم برداشت","Allergies / intolerances"],surgery:["بیریاٹرک سرجری","Bariatric surgery"],none:["کوئی نہیں","None"],sleeve:["گیسٹرک سلیو","Gastric sleeve"],bypass:["گیسٹرک بائی پاس","Gastric bypass"],other:["دیگر","Other"],surgdate:["سرجری کی تاریخ","Surgery date"],meds:["موجودہ ادویات","Current medicines"],diet:["غذائی ترجیحات","Dietary preferences"],
+stage:["سرجری کے بعد کا مرحلہ","Post-op stage"],liquid:["مائع غذا","Liquids"],puree:["پیوری","Puree"],soft:["نرم غذا","Soft foods"],regular:["عام غذا","Regular"],
+targets:["روزانہ اہداف (ڈاکٹر/ڈائٹیشن کے مطابق)","Daily targets (as set by your clinician)"],kcalT:["کیلوریز ہدف","Calorie target"],protT:["پروٹین ہدف (گرام)","Protein target (g)"],waterT:["پانی ہدف (ملی لیٹر)","Fluid target (ml)"],useEst:["تخمینہ استعمال کریں","Use estimate"],
+bmi:["BMI","BMI"],estNote:["یہ تمام اعداد تخمینہ ہیں — اپنے ڈاکٹر یا ڈائٹیشن سے تصدیق کریں۔","All figures are estimates. Please have them reviewed by a qualified clinician."],
+lost:["وزن کم ہوا","Weight lost"],toGo:["باقی","to go"],progress:["پیش رفت","Progress"],remaining:["باقی","Remaining"],
+breakfast:["ناشتہ","Breakfast"],lunch:["دوپہر","Lunch"],dinner:["رات","Dinner"],snack:["ہلکی خوراک","Snack"],
+search:["کھانا تلاش کریں…","Search food…"],grams:["مقدار (گرام)","Amount (g)"],serving:["سرونگ","Serving"],src:["ماخذ","Source"],estimate:["تخمینہ","Estimate"],perg:["فی ۱۰۰ گرام","per 100 g"],purine:["پیورین","Purines"],noData:["ڈیٹا دستیاب نہیں","no data"],
+ml:["ملی لیٹر","ml"],drank:["آج پیا","Drunk today"],addWater:["پانی شامل کریں","Add water"],
+suppName:["سپلیمنٹ کا نام / برانڈ","Supplement name / brand"],ingr:["جزو","Ingredient"],dose:["خوراک (مثلاً 500 mg elemental)","Dose (e.g. 500 mg elemental)"],times:["اوقات (مثلاً 08:00, 20:00)","Times (e.g. 08:00, 20:00)"],taken:["لے لیا","Taken"],missed:["نہیں لیا","Missed"],
+dupWarn:["یہ جزو ایک سے زیادہ سپلیمنٹ میں ہے — ڈاکٹر سے پوچھیں کہ کہیں خوراک دوہری تو نہیں۔","This ingredient appears in more than one supplement. Ask your clinician about possible double dosing."],
+caFeWarn:["کیلشیم اور آئرن کے اوقات ۲ گھنٹے سے کم فاصلے پر ہیں — عموماً انہیں الگ وقت پر لیا جاتا ہے۔ ڈاکٹر سے تصدیق کریں۔","Calcium and iron are scheduled less than 2 hours apart. They are usually taken at separate times; confirm with your clinician."],
+suppNote:["یہ ایپ سپلیمنٹ تجویز نہیں کرتی۔ خوراک ہمیشہ ڈاکٹر طے کرے اور پروڈکٹ لیبل دیکھیں۔","This app does not prescribe supplements. Dosage must be set by your clinician; check the product label."],
+labName:["ٹیسٹ","Test"],date:["تاریخ","Date"],result:["نتیجہ","Result"],unit:["یونٹ","Unit"],refLow:["لیب رینج: کم","Lab range: low"],refHigh:["لیب رینج: زیادہ","Lab range: high"],notes:["نوٹس","Notes"],outOfRange:["لیب رینج سے باہر","Outside lab range"],inRange:["رینج میں","In range"],
+labNote:["ایپ صرف آپ کی درج کردہ لیب رینج سے موازنہ کرتی ہے — یہ تشخیص نہیں۔ نتائج ڈاکٹر کو دکھائیں۔","The app only compares to the lab range you entered. This is not a diagnosis; show results to your doctor."],
+severity:["شدت (۱ ہلکی – ۵ شدید)","Severity (1 mild – 5 severe)"],
+urgent:["فوری طبی مشورہ: بڑھتی کمزوری، چلنے میں دشواری، الجھن، مسلسل قے یا شدید پانی کی کمی خطرناک ہو سکتی ہے۔ فوراً ڈاکٹر یا ایمرجنسی سے رابطہ کریں۔","Urgent: progressive weakness, difficulty walking, confusion, persistent vomiting or severe dehydration can be dangerous. Seek immediate medical care."],
+generate:["پلان بنائیں","Generate plan"],daily:["روزانہ","Daily"],weekly:["ہفتہ وار","Weekly"],hp:["زیادہ پروٹین","High protein"],lp:["کم پیورین","Low purine"],replace:["بدلیں","Replace"],addToDiary:["ڈائری میں شامل","Add to diary"],
+planNote:["پلان آپ کے سرجری مرحلے اور اہداف کے مطابق ہے لیکن طبی مشورہ نہیں۔ کریش ڈائٹ یا فاقہ نہ کریں۔","Plans follow your stage and targets but are not medical advice. No crash diets or fasting."],
+ask:["سوال لکھیں…","Ask a question…"],send:["بھیجیں","Send"],
+aiIntro:["میں آپ کے درج کردہ ڈیٹا کی سادہ وضاحت کر سکتا ہوں۔ یہ تعلیمی معلومات ہے، تشخیص یا علاج نہیں۔ نیچے سے کوئی سوال چنیں یا لکھیں۔","I can explain the data you have entered in simple words. This is education, not diagnosis or treatment. Pick a question below or type one."],
+q1:["میرے آج کے غذائی اعداد سمجھائیں","Explain my nutrition today"],q2:["میری تازہ لیب رپورٹس سمجھائیں","Explain my latest lab results"],q3:["پروٹین بڑھانے کے لیے کیا کھاؤں؟","What can I eat for more protein?"],q4:["اس ہفتے کی علامات کا خلاصہ","Summarize this week's symptoms"],q5:["ڈاکٹر سے پوچھنے کے سوالات تیار کریں","Prepare questions for my doctor"],q6:["کم پیورین والے متبادل بتائیں","Suggest low-purine alternatives"],
+rep1:["روزانہ غذائی رپورٹ","Daily nutrition report"],rep2:["ہفتہ وار غذائی رپورٹ","Weekly nutrition report"],rep3:["ماہانہ وزن رپورٹ","Monthly weight report"],rep4:["سپلیمنٹ پابندی رپورٹ","Supplement adherence report"],rep5:["لیب ہسٹری رپورٹ","Lab history report"],rep6:["علامات ہسٹری رپورٹ","Symptom history report"],
+copy:["کاپی کریں","Copy"],copied:["کاپی ہو گیا","Copied"],csv:["CSV","CSV"],text:["متن","Text"],
+lang:["زبان","Language"],theme:["تھیم","Theme"],light:["روشن","Light"],dark:["تاریک","Dark"],system:["سسٹم","System"],
+notif:["یاد دہانیاں","Reminders"],notifNote:["ویب ایپ میں یاد دہانیاں صرف اس وقت آتی ہیں جب ایپ کھلی ہو۔ اجازت دیں تاکہ نوٹیفکیشن دکھ سکے۔","In the web app, reminders fire only while the app is open. Allow notifications so they can show."],allowNotif:["نوٹیفکیشن کی اجازت دیں","Allow notifications"],waterEvery:["پانی یاد دہانی (ہر … منٹ)","Water reminder (every … min)"],mealTimes:["کھانے کے اوقات","Meal reminder times"],
+backup:["بیک اپ","Backup"],exportJ:["ڈیٹا کاپی کریں (JSON)","Copy data (JSON)"],importJ:["ڈیٹا واپس لائیں","Restore data"],importFile:["فائل سے","From file"],pasteHere:["یہاں JSON پیسٹ کریں","Paste JSON here"],restore:["بحال کریں","Restore"],
+wipe:["تمام ڈیٹا حذف کریں","Delete all data"],wipeConfirm:["واقعی سارا ڈیٹا حذف کر دوں؟ یہ واپس نہیں ہو گا۔","Really delete all data? This cannot be undone."],yesDelete:["ہاں، حذف کریں","Yes, delete"],
+installTitle:["فون پر انسٹال کریں","Install on your phone"],installHow:["Chrome میں یہ صفحہ کھولیں ← تین نقطے (⋮) ← «Add to Home screen» / «Install app»۔ ایپ آئیکن ہوم اسکرین پر آ جائے گا اور ڈیٹا اسی فون میں محفوظ رہے گا۔","Open this page in Chrome → menu (⋮) → “Add to Home screen” / “Install app”. The icon appears on your home screen and your data stays on this phone."],
+privacyText:["• تمام ڈیٹا صرف اسی فون کے براؤزر میں محفوظ ہوتا ہے؛ کسی سرور پر نہیں بھیجا جاتا۔\n• کوئی اکاؤنٹ، ای میل یا فون نمبر نہیں مانگا جاتا۔\n• آپ کسی بھی وقت ڈیٹا کاپی (بیک اپ) یا مکمل حذف کر سکتے ہیں۔\n• ڈاکٹر کے ساتھ شیئر کرنا آپ کا فیصلہ ہے — ایپ خود کچھ شیئر نہیں کرتی۔\n• براؤزر کا ڈیٹا صاف کرنے سے ایپ کا ڈیٹا بھی مٹ جاتا ہے، اس لیے وقتاً فوقتاً بیک اپ لیں۔\n• یہ ایپ طبی آلہ نہیں اور ڈاکٹر یا بیریاٹرک ڈائٹیشن کا متبادل نہیں۔","• All data is stored only in this phone's browser; nothing is sent to any server.\n• No account, email or phone number is requested.\n• You can copy (back up) or fully delete your data at any time.\n• Sharing with a doctor is your choice; the app never shares anything itself.\n• Clearing browser data also erases app data, so back up regularly.\n• This app is not a medical device and does not replace a doctor or bariatric dietitian."],
+logWeight:["وزن درج کریں","Log weight"],apptTitle:["عنوان (مثلاً فالو اپ، لیب ٹیسٹ)","Title (e.g. follow-up, lab test)"],upcoming:["آنے والی اپائنٹمنٹس","Upcoming appointments"],alerts:["اہم انتباہات","Health alerts"],discuss:["ڈاکٹر سے بات کرنے کے نکات","To discuss with your clinician"],
+tolerance:["خوراک برداشت ڈائری","Food tolerance diary"],tolOk:["ٹھیک رہا","Tolerated"],tolBad:["برداشت نہیں ہوا","Not tolerated"],portion:["حصے کا سائز","Portion"],
+fructWarn:["زیادہ فروکٹوز والا مشروب/میٹھا — یورک ایسڈ کے لیے عموماً محدود رکھنے کا مشورہ دیا جاتا ہے۔","High-fructose drink/sweet. Usually advised to limit for uric acid."],
+uricGuide:["عمومی رہنمائی (تعلیمی): پانی زیادہ پیئیں، میٹھے مشروبات اور کلیجی/گردے جیسی اعضاء کی خوراک محدود رکھیں، دالیں اور سبزیاں عموماً ٹھیک ہیں، کم چکنائی والا دودھ/دہی مددگار سمجھا جاتا ہے۔ دوا کا فیصلہ صرف ڈاکٹر کرے۔","General guidance (educational): drink plenty of water, limit sugary drinks and organ meats, legumes and vegetables are usually fine, low-fat dairy is considered helpful. Medication decisions belong to your doctor."],
+noEntries:["ابھی کوئی اندراج نہیں","No entries yet"],welcome:["خوش آمدید! شروع کرنے کے لیے پروفائل بنائیں۔","Welcome! Create your profile to begin."],setup:["پروفائل بنائیں","Set up profile"],
+bariSym:["سرجری کے بعد کی علامات","Post-surgery symptoms"],appts:["فالو اپ یاد دہانی","Follow-up reminder"],
+mealsSummary:["آج کے کھانے","Today's meals"],suppToday:["آج کے سپلیمنٹ","Today's supplements"],
+ok:["ٹھیک ہے","OK"],chartCal:["کیلوریز (۷ دن)","Calories (7 days)"],chartMacro:["غذائی اجزاء (۷ دن)","Nutrients (7 days)"],trend:["رجحان","Trend"],
+};
+/* ============ STATE ============ */
+const KEY="smart_health_v1";
+const defaultState=()=>({lang:"ur",theme:"system",profile:null,targets:{kcal:null,p:null,water:null,useEst:true},food:{},water:{},supps:[],suppLog:{},weights:[],labs:[],sym:[],tol:[],appts:[],notif:{enabled:false,waterMin:90,meals:"08:00,13:00,20:00"},chat:[]});
+let st=defaultState();
+function load(){try{const r=localStorage.getItem(KEY);if(r){st=Object.assign(defaultState(),JSON.parse(r))}}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){toast(t(["محفوظ نہیں ہو سکا","Could not save"]))}}
+const t=(k)=>{const v=typeof k==="string"?S[k]:k;return v?v[st.lang==="ur"?0:1]:k};
+const fn=(f)=>st.lang==="ur"?f.ur:f.en;
+const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const dayShift=(n)=>{const d=new Date();d.setDate(d.getDate()+n);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const uid=()=>Math.random().toString(36).slice(2,10);
+const r1=(x)=>Math.round(x*10)/10;
+const r0=(x)=>Math.round(x);
+const esc=(s)=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let toastT;function toast(m){const d=document.createElement("div");d.className="toast";d.textContent=m;document.body.appendChild(d);clearTimeout(toastT);setTimeout(()=>d.remove(),2200)}
+
+/* ============ CALCULATIONS ============ */
+const calc={
+ bmi:(w,h)=>w&&h?r1(w/((h/100)**2)):null,
+ bmiClass:(b)=>b==null?"":b<18.5?["کم وزن","Underweight"]:b<25?["نارمل","Normal"]:b<30?["زیادہ وزن","Overweight"]:["موٹاپا","Obesity"],
+ bmr:(p)=>{if(!p||!p.w||!p.h||!p.age)return null;const s=p.gender==="male"?5:-161;return 10*p.w+6.25*p.h-5*p.age+s},
+ tdee:(p)=>{const b=calc.bmr(p);if(!b)return null;const m={1:1.2,2:1.375,3:1.55,4:1.725}[p.activity||1];return b*m},
+ kcalTarget:(p)=>{const td=calc.tdee(p);if(!td)return null;if(p.surgery&&p.surgery!=="none")return null;let k=td-500;const floor=p.gender==="male"?1500:1200;return Math.max(floor,r0(k))},
+ protTarget:(p)=>{if(!p||!p.w)return null;if(p.surgery&&p.surgery!=="none")return null;return r0(p.w*1.0)},
+ waterTarget:(p)=>{if(!p||!p.w)return null;if(p.surgery&&p.surgery!=="none")return null;return Math.min(3000,r0(p.w*30))},
+ nutr:(foodId,g)=>{const f=FOODMAP[foodId];if(!f)return null;const o={};NUTR.forEach(n=>o[n[0]]=f[n[0]]*g/100);o.pur=f.pur==null?null:f.pur*g/100;return o}
+};
+function targets(){const p=st.profile||{};const T=st.targets;const bari=p.surgery&&p.surgery!=="none";
+ return {kcal:T.kcal||(T.useEst&&!bari?calc.kcalTarget(p):null)||(bari?800:1500),p:T.p||(T.useEst&&!bari?calc.protTarget(p):null)||(bari?60:50),water:T.water||(T.useEst&&!bari?calc.waterTarget(p):null)||(bari?1500:2000),fromClinician:!!(T.kcal||T.p||T.water)}}
+function dayTotals(date){const o={};NUTR.forEach(n=>o[n[0]]=0);o.pur=0;(st.food[date]||[]).forEach(e=>{const n=calc.nutr(e.id,e.g);if(n){NUTR.forEach(k=>o[k[0]]+=n[k[0]]);if(n.pur)o.pur+=n.pur}});return o}
+function waterTotal(date){return (st.water[date]||[]).reduce((a,b)=>a+b.ml,0)}
+
+/* ============ ROUTER / SHELL ============ */
+const NAVS=[["home","M3 11l9-8 9 8v9a2 2 0 0 1-2 2h-4v-6H9v6H5a2 2 0 0 1-2-2z"],["food","M5 3v8a3 3 0 0 0 3 3v7M8 3v8M11 3v8M17 3c-2 0-3 3-3 6v3h3v9"],["water","M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"],["supp","M8 4h8a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3zM5 12h14"],["more","M5 12h.01M12 12h.01M19 12h.01"]];
+const ICON=(d)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
+const MORE=[["profile","M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0"],["bari","M12 3a7 7 0 0 1 7 7c0 5-7 11-7 11S5 15 5 10a7 7 0 0 1 7-7zM9 10h6"],["labs","M9 3v7l-5 9a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3l-5-9V3M8 3h8"],["uric","M12 3v4M8 9a4 4 0 0 1 8 0c0 4-4 5-4 9 0-4-4-5-4-9z"],["sym","M4 12h3l2-5 3 10 2-6 2 3h4"],["plan","M4 5h16v14H4zM4 10h16M9 5v14"],["ai","M12 3a9 9 0 0 1 9 9 9 9 0 0 1-9 9H3l3-3a9 9 0 0 1 6-15zM9 12h.01M15 12h.01"],["reports","M6 3h9l5 5v13H6zM14 3v5h5M9 14h6M9 18h6"],["weight","M4 7h16v12H4zM12 7v3M8 7V4h8v3"],["appt","M4 5h16v15H4zM4 10h16M8 3v4M16 3v4"],["settings","M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM19 12l2-1-1-3-2 .3-1.5-1.5L17 4l-3-1-1 2h-2L10 3 7 4l.5 2.8L6 8.3 3.7 8l-1 3 2 1v2l-2 1 1 3 2.3-.3L7.5 19 7 21l3 1 1-2h2l1 2 3-1-.5-2.3 1.5-1.5 2.3.3 1-3-2-1z"],["privacy","M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"]];
+function nav(){const v=route();document.getElementById("nav").innerHTML=NAVS.map(n=>`<button data-r="${n[0]}" class="${(v===n[0]||(n[0]==="more"&&!NAVS.some(x=>x[0]===v)))?"on":""}">${ICON(n[1])}<span>${t(n[0])}</span></button>`).join("");
+ document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>go(b.dataset.r))}
+function route(){const h=(location.hash||"").replace("#","");return h||"home"}
+function go(r){if(location.hash==="#"+r)render();else location.hash=r}
+function render(){document.documentElement.setAttribute("data-theme",st.theme==="system"?"":st.theme);if(st.theme==="system")document.documentElement.removeAttribute("data-theme");
+ document.body.dir=st.lang==="ur"?"rtl":"ltr";document.getElementById("title").textContent=t("app");document.getElementById("langBtn").textContent=st.lang==="ur"?"EN":"اردو";
+ const v=route();nav();const el=document.getElementById("view");el.innerHTML="";window.scrollTo(0,0);document.getElementById("main").scrollTop=0;
+ if(!st.profile&&v!=="profile"&&v!=="settings"&&v!=="privacy"&&v!=="more"){el.innerHTML=`<div class="hero"><h2>${t("welcome")}</h2><div class="muted">${t("estNote")}</div></div><button class="btn primary block" onclick="go('profile')">${t("setup")}</button><div class="card"><h2>${t("installTitle")}</h2><div class="small">${t("installHow")}</div></div>`;return}
+ (VIEWS[v]||VIEWS.home)(el);
+ el.querySelectorAll("input,select,textarea").forEach(i=>{if(!i.id)i.id="f_"+uid()});
+}
+const VIEWS={};
+function card(title,body,extra=""){return `<div class="card">${title?`<h2>${title}</h2>`:""}${body}${extra}</div>`}
+function field(label,inner){return `<label class="f"><span>${label}</span>${inner}</label>`}
+function sel(id,opts,val){return `<select id="${id}">${opts.map(o=>`<option value="${o[0]}" ${String(val)===String(o[0])?"selected":""}>${o[1]}</option>`).join("")}</select>`}
+function sheet(html,onOpen){const o=document.getElementById("overlay");o.innerHTML=`<div class="sheet" id="sheet"><div class="panel">${html}</div></div>`;o.querySelector("#sheet").addEventListener("click",e=>{if(e.target.id==="sheet")closeSheet()});o.querySelectorAll("input,select,textarea").forEach(i=>{if(!i.id)i.id="s_"+uid()});if(onOpen)onOpen(o)}
+function closeSheet(){document.getElementById("overlay").innerHTML=""}
+function confirmBox(msg,yes,cb){sheet(`<h2>${msg}</h2><div class="row"><button class="btn danger" id="cy">${yes}</button><button class="btn" onclick="closeSheet()">${t("cancel")}</button></div>`,o=>o.querySelector("#cy").onclick=()=>{closeSheet();cb()})}
+function bar(v,max,cls){const pct=max?Math.min(100,v/max*100):0;const c=cls||(pct>=100?(pct>115?"over":"ok"):"");return `<div class="bar"><i class="${c}" style="width:${pct}%"></i></div>`}
+const charts=[];function mkChart(id,cfg){const c=document.getElementById(id);if(!c||typeof Chart==="undefined")return;const cs=getComputedStyle(document.documentElement);Chart.defaults.color=cs.getPropertyValue("--muted").trim();Chart.defaults.borderColor=cs.getPropertyValue("--line").trim();Chart.defaults.font.family='system-ui,sans-serif';charts.push(new Chart(c,cfg))}
+function colors(){const cs=getComputedStyle(document.documentElement);return {a:cs.getPropertyValue("--accent").trim(),g:cs.getPropertyValue("--green").trim(),w:cs.getPropertyValue("--warn").trim(),b:cs.getPropertyValue("--bad").trim(),m:cs.getPropertyValue("--muted").trim()}}
+const fmtDate=(d)=>d?d.slice(5).replace("-","/"):"";
+
+/* ============ HOME ============ */
+VIEWS.home=(el)=>{const p=st.profile,T=targets(),d=today(),tot=dayTotals(d),w=waterTotal(d);const lastW=st.weights.length?st.weights[st.weights.length-1].w:p.w;const lost=r1((p.startW||p.w)-lastW);const toGo=r1(lastW-(p.targetW||lastW));
+ const bmi=calc.bmi(lastW,p.h);const alerts=[];
+ const recent=st.sym.filter(s=>s.date>=dayShift(-2));if(recent.some(s=>["vomit","dump"].includes(s.type)&&s.sev>=4))alerts.push(t("urgent"));
+ const latest={};st.labs.slice().sort((a,b)=>a.date.localeCompare(b.date)).forEach(l=>latest[l.test]=l);const discuss=Object.values(latest).filter(l=>outRange(l)).map(l=>labName(l.test)+" ("+l.val+" "+l.unit+")");
+ if(tot.p<T.p*0.5&&new Date().getHours()>=18)discuss.push(t(["آج پروٹین ہدف سے بہت کم ہے","Protein is far below target today"]));
+ const appts=st.appts.filter(a=>a.date>=d).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,3);
+ const suppsToday=st.supps.flatMap(s=>(s.times||[]).map(tm=>({s,tm,done:(st.suppLog[d]||{})[s.id+"@"+tm]})));
+ el.innerHTML=`
+ <div class="hero"><div class="muted">${esc(p.name)} · ${t("today")} ${d}</div><div class="row spread"><div><div class="big num">${lastW} kg</div><div class="muted">${t("lost")}: <b class="num">${lost}</b> kg · ${t("toGo")}: <b class="num">${toGo>0?toGo:0}</b> kg</div></div><div><div class="num" style="font-size:1.1rem;font-weight:600">BMI ${bmi??"–"}</div><div class="muted">${t(calc.bmiClass(bmi))||""}</div></div></div>${bar(lost,(p.startW||p.w)-(p.targetW||lastW),"ok")}</div>
+ ${alerts.length?`<div class="notice bad"><b>${t("alerts")}:</b> ${alerts.join("<br>")}</div>`:""}
+ <div class="grid3">
+  <div class="tile"><div class="lbl">${t(["کیلوریز","Calories"])}</div><div class="val">${r0(tot.kcal)}</div><div class="sub num">/ ${T.kcal} kcal</div>${bar(tot.kcal,T.kcal)}</div>
+  <div class="tile"><div class="lbl">${t(["پروٹین","Protein"])}</div><div class="val">${r0(tot.p)} g</div><div class="sub num">/ ${T.p} g</div>${bar(tot.p,T.p)}</div>
+  <div class="tile"><div class="lbl">${t("water")}</div><div class="val">${w}</div><div class="sub num">/ ${T.water} ml</div>${bar(w,T.water)}</div>
+ </div>
+ ${card(t("suppToday"),suppsToday.length?`<div class="list">${suppsToday.map(x=>`<div class="item"><div class="t"><b>${esc(x.s.name)}</b><span class="num">${x.tm} · ${esc(x.s.dose||"")}</span></div><button class="btn sm ${x.done==="taken"?"soft":""}" onclick="suppMark('${x.s.id}','${x.tm}','taken')">${x.done==="taken"?"✓ "+t("taken"):t("taken")}</button></div>`).join("")}</div>`:`<div class="muted">${t("noEntries")} — <a href="#supp">${t("add")}</a></div>`)}
+ ${card(t("mealsSummary"),["breakfast","lunch","dinner","snack"].map(m=>{const items=(st.food[d]||[]).filter(e=>e.meal===m);const k=items.reduce((a,e)=>a+calc.nutr(e.id,e.g).kcal,0);return `<div class="row spread small"><span>${t(m)}</span><span class="muted">${items.length?items.map(e=>fn(FOODMAP[e.id])).join("، "):"—"}</span><span class="num">${r0(k)} kcal</span></div>`}).join(""),`<button class="btn soft sm" onclick="go('food')">${t("add")} +</button>`)}
+ ${discuss.length?card(t("discuss"),`<ul style="margin:0;padding-inline-start:18px">${discuss.map(x=>`<li>${esc(x)}</li>`).join("")}</ul><div class="muted small">${t("labNote")}</div>`):""}
+ ${card(t("upcoming"),appts.length?`<div class="list">${appts.map(a=>`<div class="item"><div class="t"><b>${esc(a.title)}</b><span class="num">${a.date} ${a.time||""}</span></div></div>`).join("")}</div>`:`<div class="muted">${t("noEntries")} — <a href="#appt">${t("add")}</a></div>`)}
+ ${card(t("chartCal"),`<div class="chartbox"><canvas id="cCal"></canvas></div>`)}
+ <div class="muted small">${t("estNote")}</div>`;
+ const days=[...Array(7)].map((_,i)=>dayShift(i-6));const c=colors();
+ mkChart("cCal",{type:"bar",data:{labels:days.map(fmtDate),datasets:[{label:"kcal",data:days.map(x=>r0(dayTotals(x).kcal)),backgroundColor:c.a,borderRadius:6},{label:t(["پروٹین g","Protein g"]),data:days.map(x=>r0(dayTotals(x).p)),backgroundColor:c.g,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true}}}});
+};
+function labName(id){const l=LABS.find(x=>x[0]===id);return l?(st.lang==="ur"?l[1]:l[2]):id}
+function outRange(l){return (l.lo!=null&&l.val<l.lo)||(l.hi!=null&&l.val>l.hi)}
+function suppMark(id,tm,status){const d=today();st.suppLog[d]=st.suppLog[d]||{};const k=id+"@"+tm;st.suppLog[d][k]=st.suppLog[d][k]===status?null:status;save();render()}
+
+/* ============ PROFILE ============ */
+VIEWS.profile=(el)=>{const p=st.profile||{gender:"male",activity:1,surgery:"none",stage:"regular"};const T=st.targets;
+ el.innerHTML=card(t("profile"),`<div class="grid2">
+ ${field(t("name"),`<input id="p_name" value="${esc(p.name||"")}">`)}${field(t("age"),`<input id="p_age" type="number" min="10" max="110" value="${p.age||""}">`)}
+ ${field(t("gender"),sel("p_gender",[["male",t("male")],["female",t("female")]],p.gender))}${field(t("height"),`<input id="p_h" type="number" min="100" max="230" value="${p.h||""}">`)}
+ ${field(t("curw"),`<input id="p_w" type="number" step="0.1" min="25" max="350" value="${p.w||""}">`)}${field(t("startw"),`<input id="p_sw" type="number" step="0.1" value="${p.startW||""}">`)}
+ ${field(t("targetw"),`<input id="p_tw" type="number" step="0.1" value="${p.targetW||""}">`)}${field(t("activity"),sel("p_act",[[1,t("act1")],[2,t("act2")],[3,t("act3")],[4,t("act4")]],p.activity||1))}
+ ${field(t("surgery"),sel("p_surg",[["none",t("none")],["sleeve",t("sleeve")],["bypass",t("bypass")],["other",t("other")]],p.surgery||"none"))}${field(t("surgdate"),`<input id="p_sd" type="date" value="${p.surgDate||""}">`)}
+ ${field(t("stage"),sel("p_stage",[["liquid",t("liquid")],["puree",t("puree")],["soft",t("soft")],["regular",t("regular")]],p.stage||"regular"))}
+ </div>
+ ${field(t("conditions"),`<input id="p_cond" value="${esc(p.cond||"")}">`)}${field(t("allergies"),`<input id="p_all" value="${esc(p.allergies||"")}">`)}${field(t("meds"),`<input id="p_meds" value="${esc(p.meds||"")}">`)}${field(t("diet"),`<input id="p_diet" value="${esc(p.diet||"")}">`)}`)
+ +card(t("targets"),`<div class="notice info small">${t(["خالی چھوڑیں تو ایپ تخمینہ استعمال کرے گی (صرف غیر سرجری والوں کے لیے)۔ بیریاٹرک مریض اپنے ڈاکٹر کے دیے ہوئے اہداف درج کریں۔","Leave blank to use the app's estimate (non-surgical users only). Bariatric patients should enter targets given by their clinician."])}</div><div class="grid3">${field(t("kcalT"),`<input id="t_k" type="number" value="${T.kcal||""}">`)}${field(t("protT"),`<input id="t_p" type="number" value="${T.p||""}">`)}${field(t("waterT"),`<input id="t_w" type="number" value="${T.water||""}">`)}</div>`)
+ +`<button class="btn primary block" id="pSave">${t("save")}</button><div class="muted small">${t("estNote")}</div>`;
+ el.querySelector("#pSave").onclick=()=>{const g=id=>document.getElementById(id).value;const w=+g("p_w"),h=+g("p_h"),age=+g("p_age");if(!g("p_name")||!w||!h||!age){toast(t(["نام، عمر، قد اور وزن ضروری ہیں","Name, age, height and weight are required"]));return}
+  const np={name:g("p_name"),age,gender:g("p_gender"),h,w,startW:+g("p_sw")||w,targetW:+g("p_tw")||null,activity:+g("p_act"),surgery:g("p_surg"),surgDate:g("p_sd"),stage:g("p_stage"),cond:g("p_cond"),allergies:g("p_all"),meds:g("p_meds"),diet:g("p_diet")};
+  if(!st.profile||st.profile.w!==w){st.weights.push({date:today(),w})}st.profile=np;st.targets={kcal:+g("t_k")||null,p:+g("t_p")||null,water:+g("t_w")||null,useEst:true};save();toast(t(["محفوظ ہو گیا","Saved"]));go("home")}};
+
+/* ============ FOOD ============ */
+let foodDay=today(),foodMeal="breakfast";
+VIEWS.food=(el)=>{const d=foodDay,tot=dayTotals(d),T=targets();const items=st.food[d]||[];
+ el.innerHTML=`<div class="row spread"><button class="btn sm" onclick="foodDay=dayShift(-1+(dayDiff(foodDay)));render()">◀</button><b class="num">${d===today()?t("today"):d}</b><button class="btn sm" onclick="foodDay=dayShift(1+(dayDiff(foodDay)));render()">▶</button></div>
+ <div class="grid2">${NUTR.slice(0,4).map(n=>{const tg={kcal:T.kcal,p:T.p}[n[0]];return `<div class="tile"><div class="lbl">${t([n[1],n[2]])}</div><div class="val">${r0(tot[n[0]])} <span class="small">${n[3]}</span></div>${tg?`<div class="sub num">${t("remaining")}: ${Math.max(0,r0(tg-tot[n[0]]))}</div>${bar(tot[n[0]],tg)}`:""}</div>`}).join("")}</div>
+ <details class="card"><summary>${t(["دیگر غذائی اجزاء","Other nutrients"])}</summary><div class="tablewrap"><table>${NUTR.slice(4).map(n=>`<tr><td>${t([n[1],n[2]])}</td><td class="num">${r1(tot[n[0]])} ${n[3]}</td></tr>`).join("")}<tr><td>${t("purine")}</td><td class="num">${r0(tot.pur)} mg*</td></tr></table></div><div class="muted small">*${t(["صرف ان کھانوں سے جن کا پیورین ڈیٹا موجود ہے","only from foods with purine data"])}</div></details>
+ <div class="tabs">${["breakfast","lunch","dinner","snack"].map(m=>`<button class="${foodMeal===m?"on":""}" onclick="foodMeal='${m}';render()">${t(m)}</button>`).join("")}</div>
+ <button class="btn primary block" onclick="openFoodSearch()">+ ${t("add")} — ${t(foodMeal)}</button>
+ <div class="list">${items.filter(e=>e.meal===foodMeal).map(e=>{const f=FOODMAP[e.id],n=calc.nutr(e.id,e.g);return `<div class="item"><div class="t"><b>${fn(f)} ${f.est?`<span class="pill warn">${t("estimate")}</span>`:""}</b><span class="num">${e.g} g · ${r0(n.kcal)} kcal · P ${r1(n.p)} g · C ${r1(n.c)} · F ${r1(n.f)}</span></div><button class="btn sm" onclick="editEntry('${e.uid}')">${t("edit")}</button><button class="btn sm danger" onclick="delEntry('${e.uid}')">✕</button></div>`}).join("")||`<div class="muted">${t("noEntries")}</div>`}</div>
+ ${card(t("chartMacro"),`<div class="chartbox"><canvas id="cMac"></canvas></div>`)}`;
+ const days=[...Array(7)].map((_,i)=>dayShift(i-6)),c=colors();
+ mkChart("cMac",{type:"line",data:{labels:days.map(fmtDate),datasets:[["p",c.a],["c",c.g],["f",c.w],["fib",c.m]].map(([k,col])=>({label:t([NUTR.find(n=>n[0]===k)[1],NUTR.find(n=>n[0]===k)[2]]),data:days.map(x=>r0(dayTotals(x)[k])),borderColor:col,backgroundColor:col,tension:.3}))},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true}}}});
+};
+function dayDiff(d){return Math.round((new Date(d)-new Date(today()))/86400000)}
+function openFoodSearch(preset){let q="",cat="";const draw=(o)=>{const list=FOODS.filter(f=>(!cat||f.cat===cat)&&(!q||f.ur.includes(q)||f.en.toLowerCase().includes(q.toLowerCase())));o.querySelector("#fl").innerHTML=list.slice(0,60).map(f=>`<div class="item" onclick="pickFood('${f.id}')"><div class="t"><b>${fn(f)} ${f.est?`<span class="pill warn">${t("estimate")}</span>`:""}</b><span class="num">${f.kcal} kcal · P ${f.p} g ${t("perg")} · ${f.serv?f.serv[st.lang==="ur"?0:1]+" = "+f.serv[2]+" g":""}</span></div></div>`).join("")||`<div class="muted">${t("noEntries")}</div>`};
+ sheet(`<h2>${t("search").replace("…","")}</h2><input id="fq" placeholder="${t("search")}"><div class="chips" id="fc"><span class="chip on" data-c="">${t(["سب","All"])}</span>${Object.entries(CATS).map(([k,v])=>`<span class="chip" data-c="${k}">${t(v)}</span>`).join("")}</div><div class="list" id="fl"></div>`,o=>{o.querySelector("#fq").oninput=e=>{q=e.target.value.trim();draw(o)};o.querySelectorAll(".chip").forEach(ch=>ch.onclick=()=>{o.querySelectorAll(".chip").forEach(x=>x.classList.remove("on"));ch.classList.add("on");cat=ch.dataset.c;draw(o)});draw(o);o.querySelector("#fq").focus()})}
+function pickFood(id,existing){const f=FOODMAP[id];let g=existing?existing.g:(f.serv?f.serv[2]:100);
+ const upd=(o)=>{const n=calc.nutr(id,g);o.querySelector("#np").innerHTML=NUTR.map(x=>`<tr><td>${t([x[1],x[2]])}</td><td class="num">${r1(n[x[0]])} ${x[3]}</td></tr>`).join("")+`<tr><td>${t("purine")}</td><td class="num">${f.pur==null?t("noData"):r0(n.pur)+" mg (approx.)"}</td></tr>`};
+ sheet(`<h2>${fn(f)}</h2><div class="muted small">${t("src")}: ${esc(f.src)} · ${f.state==="cooked"?t(["پکا ہوا","cooked"]):f.state==="raw"?t(["کچا","raw"]):""} ${f.est?`· <span class="pill warn">${t("estimate")}</span>`:""}</div>
+ ${HIGH_FRUCTOSE.includes(id)?`<div class="notice warn small">${t("fructWarn")}</div>`:""}
+ <div class="row">${field(t("grams"),`<input id="fg" type="number" min="1" max="2000" value="${g}">`)}${f.serv?`<button class="btn sm" id="fs">${f.serv[st.lang==="ur"?0:1]} (${f.serv[2]} g)</button>`:""}</div>
+ <div class="row"><button class="btn sm" data-g="50">50 g</button><button class="btn sm" data-g="100">100 g</button><button class="btn sm" data-g="150">150 g</button></div>
+ <div class="tablewrap"><table id="np"></table></div>
+ <button class="btn primary block" id="fadd">${existing?t("save"):t("add")} — ${t(foodMeal)}</button>`,o=>{upd(o);const inp=o.querySelector("#fg");inp.oninput=()=>{g=+inp.value||0;upd(o)};o.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{g=+b.dataset.g;inp.value=g;upd(o)});const fs=o.querySelector("#fs");if(fs)fs.onclick=()=>{g=f.serv[2];inp.value=g;upd(o)};
+  o.querySelector("#fadd").onclick=()=>{if(!(g>0)){toast(t(["مقدار درج کریں","Enter an amount"]));return}st.food[foodDay]=st.food[foodDay]||[];if(existing){existing.g=g}else st.food[foodDay].push({uid:uid(),id,g,meal:foodMeal});save();closeSheet();render()}})}
+function editEntry(u){const e=(st.food[foodDay]||[]).find(x=>x.uid===u);if(e)pickFood(e.id,e)}
+function delEntry(u){st.food[foodDay]=(st.food[foodDay]||[]).filter(x=>x.uid!==u);save();render()}
+
+/* ============ WATER ============ */
+VIEWS.water=(el)=>{const d=today(),T=targets(),w=waterTotal(d);const days=[...Array(7)].map((_,i)=>dayShift(i-6));
+ el.innerHTML=`<div class="hero"><div class="muted">${t("drank")}</div><div class="big num">${w} <span style="font-size:1rem">/ ${T.water} ml</span></div>${bar(w,T.water,"ok")}</div>
+ ${card(t("addWater"),`<div class="grid2">${[100,200,250,500].map(m=>`<button class="btn soft" onclick="addWater(${m})">+${m} ml</button>`).join("")}</div><div class="row" style="margin-top:8px">${field(t("ml"),`<input id="wml" type="number" min="10" max="2000">`)}<button class="btn primary" onclick="addWater(+document.getElementById('wml').value)">${t("add")}</button></div>`)}
+ ${card(t("today"),`<div class="list">${(st.water[d]||[]).map(x=>`<div class="item"><div class="t"><b class="num">${x.ml} ml</b><span class="num">${x.time}</span></div><button class="btn sm danger" onclick="delWater('${x.uid}')">✕</button></div>`).join("")||`<div class="muted">${t("noEntries")}</div>`}</div>`)}
+ ${card(t("week"),`<div class="chartbox"><canvas id="cW"></canvas></div>`)}
+ <div class="notice info small">${t(["بیریاٹرک مریض: اپنے ڈاکٹر کی ہدایت کے مطابق ہدف اور گھونٹ کا وقت رکھیں (ہدف پروفائل میں بدلیں)۔","Bariatric patients: keep fluid target and sip timing as instructed by your clinician (change target in Profile)."])}</div>`;
+ const c=colors();mkChart("cW",{type:"bar",data:{labels:days.map(fmtDate),datasets:[{label:"ml",data:days.map(waterTotal),backgroundColor:days.map(x=>waterTotal(x)>=T.water?c.g:c.a),borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true}}}})};
+function addWater(ml){if(!(ml>0))return;const d=today();st.water[d]=st.water[d]||[];st.water[d].push({uid:uid(),ml,time:new Date().toTimeString().slice(0,5)});save();render()}
+function delWater(u){const d=today();st.water[d]=(st.water[d]||[]).filter(x=>x.uid!==u);save();render()}
+
+/* ============ SUPPLEMENTS ============ */
+VIEWS.supp=(el)=>{const d=today();const warns=suppWarnings();
+ el.innerHTML=`<div class="notice info small">${t("suppNote")}</div>${warns.map(w=>`<div class="notice warn small">${w}</div>`).join("")}
+ <button class="btn primary block" onclick="editSupp()">+ ${t("add")}</button>
+ <div class="list">${st.supps.map(s=>`<div class="card"><div class="row spread"><div><b>${esc(s.name)}</b> <span class="pill accent">${ingrName(s.ingr)}</span><div class="muted small">${esc(s.dose||"")}</div></div><div class="row"><button class="btn sm" onclick="editSupp('${s.id}')">${t("edit")}</button><button class="btn sm danger" onclick="delSupp('${s.id}')">✕</button></div></div>
+ <div class="row" style="margin-top:6px">${(s.times||[]).map(tm=>{const k=(st.suppLog[d]||{})[s.id+"@"+tm];return `<span class="num small">${tm}</span><button class="btn sm ${k==="taken"?"soft":""}" onclick="suppMark('${s.id}','${tm}','taken')">${k==="taken"?"✓ ":""}${t("taken")}</button><button class="btn sm ${k==="missed"?"danger":""}" onclick="suppMark('${s.id}','${tm}','missed')">${t("missed")}</button>`}).join("")}</div></div>`).join("")||`<div class="muted">${t("noEntries")}</div>`}</div>
+ ${card(t("week"),`<div class="chartbox"><canvas id="cS"></canvas></div>`)}`;
+ const days=[...Array(7)].map((_,i)=>dayShift(i-6));const c=colors();
+ mkChart("cS",{type:"bar",data:{labels:days.map(fmtDate),datasets:[{label:t("taken"),data:days.map(x=>Object.values(st.suppLog[x]||{}).filter(v=>v==="taken").length),backgroundColor:c.g,borderRadius:6},{label:t("missed"),data:days.map(x=>Object.values(st.suppLog[x]||{}).filter(v=>v==="missed").length),backgroundColor:c.b,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true,ticks:{stepSize:1}}}}})};
+function ingrName(i){const x=SUPP_INGR.find(y=>y[0]===i);return x?t([x[1],x[2]]):i}
+function suppWarnings(){const w=[];const cnt={};st.supps.forEach(s=>{if(s.ingr!=="other"&&s.ingr!=="multi")cnt[s.ingr]=(cnt[s.ingr]||0)+1});const multi=st.supps.some(s=>s.ingr==="multi");Object.entries(cnt).forEach(([k,v])=>{if(v>1||(multi&&["fe","zn","cu","b12","d3","b1"].includes(k)))w.push(ingrName(k)+": "+t("dupWarn"))});
+ const mins=tm=>{const [h,m]=tm.split(":").map(Number);return h*60+m};const ca=st.supps.filter(s=>s.ingr==="ca").flatMap(s=>s.times||[]),fe=st.supps.filter(s=>s.ingr==="fe").flatMap(s=>s.times||[]);if(ca.some(a=>fe.some(b=>Math.abs(mins(a)-mins(b))<120)))w.push(t("caFeWarn"));return w}
+function editSupp(id){const s=st.supps.find(x=>x.id===id)||{ingr:"multi",times:["08:00"]};
+ sheet(`<h2>${id?t("edit"):t("add")} — ${t("supp")}</h2>${field(t("suppName"),`<input id="sn" value="${esc(s.name||"")}">`)}${field(t("ingr"),sel("si",SUPP_INGR.map(x=>[x[0],t([x[1],x[2]])]),s.ingr))}${field(t("dose"),`<input id="sd" value="${esc(s.dose||"")}">`)}${field(t("times"),`<input id="stm" value="${(s.times||[]).join(", ")}">`)}<button class="btn primary block" id="ss">${t("save")}</button>`,o=>o.querySelector("#ss").onclick=()=>{const name=o.querySelector("#sn").value.trim();if(!name){toast(t(["نام درج کریں","Enter a name"]));return}const times=o.querySelector("#stm").value.split(/[,، ]+/).map(x=>x.trim()).filter(x=>/^\d{1,2}:\d{2}$/.test(x)).map(x=>x.padStart(5,"0"));if(!times.length){toast(t(["کم از کم ایک وقت HH:MM","At least one time HH:MM"]));return}
+  const n={id:s.id||uid(),name,ingr:o.querySelector("#si").value,dose:o.querySelector("#sd").value,times};if(s.id)Object.assign(s,n);else st.supps.push(n);save();closeSheet();render()})}
+function delSupp(id){confirmBox(t(["یہ سپلیمنٹ حذف کریں؟","Delete this supplement?"]),t("yesDelete"),()=>{st.supps=st.supps.filter(x=>x.id!==id);save();render()})}
+
+/* ============ WEIGHT ============ */
+VIEWS.weight=(el)=>{const ws=st.weights.slice().sort((a,b)=>a.date.localeCompare(b.date));
+ el.innerHTML=card(t("logWeight"),`<div class="row">${field(t("date"),`<input id="wd" type="date" value="${today()}">`)}${field("kg",`<input id="wv" type="number" step="0.1">`)}<button class="btn primary" onclick="logWeight()">${t("save")}</button></div>`)
+ +card(t("trend"),`<div class="chartbox tall"><canvas id="cWt"></canvas></div>`)
+ +card(t(["تاریخچہ","History"]),`<div class="list">${ws.slice().reverse().map(w=>`<div class="item"><div class="t"><b class="num">${w.w} kg</b><span class="num">${w.date}</span></div><button class="btn sm danger" onclick="delWeight('${w.date}')">✕</button></div>`).join("")||`<div class="muted">${t("noEntries")}</div>`}</div>`);
+ const c=colors();mkChart("cWt",{type:"line",data:{labels:ws.map(w=>fmtDate(w.date)),datasets:[{label:"kg",data:ws.map(w=>w.w),borderColor:c.a,backgroundColor:c.a+"33",fill:true,tension:.3,pointRadius:4},...(st.profile.targetW?[{label:t("targetw"),data:ws.map(()=>st.profile.targetW),borderColor:c.g,borderDash:[6,4],pointRadius:0}]:[])]},options:{responsive:true,maintainAspectRatio:false}})};
+function logWeight(){const d=document.getElementById("wd").value,w=+document.getElementById("wv").value;if(!d||!(w>20)){toast(t(["درست وزن درج کریں","Enter a valid weight"]));return}st.weights=st.weights.filter(x=>x.date!==d);st.weights.push({date:d,w});st.weights.sort((a,b)=>a.date.localeCompare(b.date));if(d>=st.weights[st.weights.length-1].date)st.profile.w=w;save();render()}
+function delWeight(d){st.weights=st.weights.filter(x=>x.date!==d);save();render()}
+
+/* ============ BARIATRIC ============ */
+VIEWS.bari=(el)=>{const p=st.profile;if(!p.surgery||p.surgery==="none"){el.innerHTML=`<div class="notice info">${t(["پروفائل میں سرجری کی قسم منتخب کریں تو یہ حصہ فعال ہو گا۔","Select a surgery type in Profile to enable this section."])}</div><button class="btn soft" onclick="go('profile')">${t("profile")}</button>`;return}
+ const d=today(),T=targets(),tot=dayTotals(d),w=waterTotal(d);const daysPost=p.surgDate?Math.round((new Date(today())-new Date(p.surgDate))/86400000):null;
+ el.innerHTML=`<div class="hero"><div class="muted">${t(p.surgery)} ${daysPost!=null?"· "+t(["دن","day"])+" "+daysPost:""}</div><div class="row spread"><span>${t("stage")}: <b>${t(p.stage)}</b></span><button class="btn sm" style="background:rgba(255,255,255,.2);color:#fff;border:0" onclick="go('profile')">${t("edit")}</button></div></div>
+ <div class="notice info small">${t(["اہداف آپ کے ڈاکٹر/ڈائٹیشن کے مطابق ہونے چاہییں — ہر مریض کی ضرورت الگ ہے۔","Targets must come from your surgeon/dietitian; every patient is different."])} ${T.fromClinician?"":"<b>"+t(["ابھی ایپ کے عمومی ڈیفالٹ استعمال ہو رہے ہیں۔","Generic app defaults are currently in use."])+"</b>"}</div>
+ <div class="grid2"><div class="tile"><div class="lbl">${t(["پروٹین","Protein"])}</div><div class="val">${r0(tot.p)} / ${T.p} g</div>${bar(tot.p,T.p)}</div><div class="tile"><div class="lbl">${t("water")}</div><div class="val">${w} / ${T.water}</div>${bar(w,T.water)}</div></div>
+ ${card(t("portion"),`<div class="muted small">${t(["آج کی ہر خوراک کا وزن (گرام) — چھوٹے حصے، آہستہ کھائیں۔","Weight of each meal today (g); small portions, eat slowly."])}</div><div class="tablewrap"><table>${["breakfast","lunch","dinner","snack"].map(m=>`<tr><td>${t(m)}</td><td class="num">${(st.food[d]||[]).filter(e=>e.meal===m).reduce((a,e)=>a+e.g,0)} g</td></tr>`).join("")}</table></div>`)}
+ ${card(t("tolerance"),`<button class="btn soft sm" onclick="addTol()">+ ${t("add")}</button><div class="list" style="margin-top:8px">${st.tol.slice().reverse().slice(0,15).map(x=>`<div class="item"><div class="t"><b>${esc(x.food)} <span class="pill ${x.ok?"good":"bad"}">${x.ok?t("tolOk"):t("tolBad")}</span></b><span class="num">${x.date} ${x.note?"· "+esc(x.note):""}</span></div><button class="btn sm danger" onclick="st.tol=st.tol.filter(y=>y.id!=='${x.id}');save();render()">✕</button></div>`).join("")||`<div class="muted">${t("noEntries")}</div>`}</div>`)}
+ ${card(t("bariSym"),`<div class="muted small">${t(["قے، متلی، ریفلکس، قبض، اسہال اور ڈمپنگ — علامات ڈائری میں درج کریں؛ یہاں پچھلے ۷ دن کا خلاصہ ہے۔","Vomiting, nausea, reflux, constipation, diarrhea and dumping: log in Symptoms diary; last 7 days summarized here."])}</div><div class="tablewrap"><table>${["nausea","vomit","reflux","constip","diarr","dump"].map(k=>{const xs=st.sym.filter(s=>s.type===k&&s.date>=dayShift(-6));const mx=xs.length?Math.max(...xs.map(s=>s.sev)):0;return `<tr><td>${symName(k)}</td><td class="num">${xs.length} ${t(["بار","times"])}</td><td><span class="pill ${mx>=4?"bad":mx>=2?"warn":"good"}">${mx?t(["شدت","sev"])+" "+mx:"—"}</span></td></tr>`}).join("")}</table></div><button class="btn soft sm" onclick="go('sym')">${t("sym")} →</button>`)}
+ ${card(t("appts"),`<button class="btn soft sm" onclick="go('appt')">${t("appt")} →</button>`)}
+ <div class="notice warn small">${t("urgent")}</div>`};
+function addTol(){sheet(`<h2>${t("tolerance")}</h2>${field(t("food"),`<input id="tf">`)}<div class="row"><button class="btn soft" id="tok">${t("tolOk")}</button><button class="btn danger" id="tbad">${t("tolBad")}</button></div>${field(t("notes"),`<input id="tn">`)}`,o=>{const add=ok=>{const f=o.querySelector("#tf").value.trim();if(!f){toast(t(["کھانے کا نام لکھیں","Enter food name"]));return}st.tol.push({id:uid(),date:today(),food:f,ok,note:o.querySelector("#tn").value});save();closeSheet();render()};o.querySelector("#tok").onclick=()=>add(true);o.querySelector("#tbad").onclick=()=>add(false)})}
+function symName(k){const s=SYMPTOMS.find(x=>x[0]===k);return s?t([s[1],s[2]]):k}
+
+/* ============ LABS ============ */
+let labSel="hb";
+VIEWS.labs=(el)=>{const list=st.labs.slice().sort((a,b)=>b.date.localeCompare(a.date));
+ el.innerHTML=`<div class="notice info small">${t("labNote")}</div><button class="btn primary block" onclick="editLab()">+ ${t("add")}</button>
+ ${card(t("trend"),`${sel("labPick",LABS.map(l=>[l[0],t([l[1],l[2]])]),labSel)}<div class="chartbox"><canvas id="cL"></canvas></div>`)}
+ <div class="list">${list.map(l=>`<div class="item"><div class="t"><b>${labName(l.test)} <span class="pill ${outRange(l)?"bad":"good"}">${outRange(l)?t("outOfRange"):t("inRange")}</span></b><span class="num">${l.date} · ${l.val} ${esc(l.unit)} · ${t(["رینج","range"])} ${l.lo??"?"}–${l.hi??"?"} ${l.note?"· "+esc(l.note):""}</span></div><button class="btn sm" onclick="editLab('${l.id}')">${t("edit")}</button><button class="btn sm danger" onclick="st.labs=st.labs.filter(x=>x.id!=='${l.id}');save();render()">✕</button></div>`).join("")||`<div class="muted">${t("noEntries")}</div>`}</div>`;
+ document.getElementById("labPick").onchange=e=>{labSel=e.target.value;render()};
+ const pts=st.labs.filter(l=>l.test===labSel).sort((a,b)=>a.date.localeCompare(b.date));const c=colors();
+ mkChart("cL",{type:"line",data:{labels:pts.map(p=>fmtDate(p.date)),datasets:[{label:labName(labSel),data:pts.map(p=>p.val),borderColor:c.a,backgroundColor:c.a,tension:.2,pointRadius:5,pointBackgroundColor:pts.map(p=>outRange(p)?c.b:c.g)},{label:t("refLow"),data:pts.map(p=>p.lo),borderColor:c.m,borderDash:[4,4],pointRadius:0},{label:t("refHigh"),data:pts.map(p=>p.hi),borderColor:c.m,borderDash:[4,4],pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false}})};
+function editLab(id){const l=st.labs.find(x=>x.id===id)||{test:labSel,date:today()};const def=LABS.find(x=>x[0]===l.test);
+ sheet(`<h2>${t("labs")}</h2>${field(t("labName"),sel("lt",LABS.map(x=>[x[0],t([x[1],x[2]])]),l.test))}<div class="grid2">${field(t("date"),`<input id="ld" type="date" value="${l.date}">`)}${field(t("result"),`<input id="lv" type="number" step="any" value="${l.val??""}">`)}${field(t("unit"),`<input id="lu" value="${esc(l.unit||def[3])}">`)}<div></div>${field(t("refLow"),`<input id="llo" type="number" step="any" value="${l.lo??""}">`)}${field(t("refHigh"),`<input id="lhi" type="number" step="any" value="${l.hi??""}">`)}</div>${field(t("notes"),`<input id="ln" value="${esc(l.note||"")}">`)}<button class="btn primary block" id="ls">${t("save")}</button>`,o=>{o.querySelector("#lt").onchange=e=>{const d=LABS.find(x=>x[0]===e.target.value);o.querySelector("#lu").value=d[3]};o.querySelector("#ls").onclick=()=>{const g=i=>o.querySelector("#"+i).value;if(g("lv")===""||!g("ld")){toast(t(["تاریخ اور نتیجہ ضروری","Date and result required"]));return}const n={id:l.id||uid(),test:g("lt"),date:g("ld"),val:+g("lv"),unit:g("lu"),lo:g("llo")===""?null:+g("llo"),hi:g("lhi")===""?null:+g("lhi"),note:g("ln")};if(l.id)Object.assign(l,n);else st.labs.push(n);labSel=n.test;save();closeSheet();render()}})}
+
+/* ============ URIC ACID ============ */
+VIEWS.uric=(el)=>{const pts=st.labs.filter(l=>l.test==="uric").sort((a,b)=>a.date.localeCompare(b.date));const d=today(),tot=dayTotals(d),T=targets();const hf=(st.food[d]||[]).filter(e=>HIGH_FRUCTOSE.includes(e.id));
+ el.innerHTML=`<div class="notice info small">${t(["یہ حصہ گاؤٹ کی تشخیص یا دوا تجویز نہیں کرتا۔","This section does not diagnose gout or recommend medication."])}</div>
+ ${card(t(["یورک ایسڈ ہسٹری","Uric acid history"]),`<div class="chartbox"><canvas id="cU"></canvas></div><button class="btn soft sm" onclick="labSel='uric';editLab()">+ ${t("add")}</button>`)}
+ <div class="grid2"><div class="tile"><div class="lbl">${t("water")}</div><div class="val">${waterTotal(d)} / ${T.water}</div>${bar(waterTotal(d),T.water)}</div><div class="tile"><div class="lbl">${t("purine")} ${t("today")}</div><div class="val">${r0(tot.pur)} mg</div><div class="sub">${t(["صرف معلوم ڈیٹا والے کھانے","known-data foods only"])}</div></div></div>
+ ${hf.length?`<div class="notice warn small">${t("fructWarn")} (${hf.map(e=>fn(FOODMAP[e.id])).join("، ")})</div>`:""}
+ ${card(t(["پیورین معلومات (mg/100g، تقریباً)","Purine information (mg/100 g, approx.)"]),`<div class="tablewrap"><table><tr><th>${t("food")}</th><th class="num">${t("purine")}</th></tr>${FOODS.filter(f=>f.pur!=null).sort((a,b)=>b.pur-a.pur).map(f=>`<tr><td>${fn(f)}</td><td class="num">${f.pur} <span class="pill ${f.pur>=200?"bad":f.pur>=100?"warn":"good"}">${f.pur>=200?t(["بہت زیادہ","very high"]):f.pur>=100?t(["زیادہ","high"]):t(["کم","low"])}</span></td></tr>`).join("")}</table></div><div class="muted small">${t("src")}: Kaneko et al. 2014 (approx.). ${t(["دیگر کھانوں کا قابلِ اعتماد ڈیٹا دستیاب نہیں۔","Reliable data is not available for other foods."])}</div>`)}
+ ${card(t(["غذائی رہنمائی","Food guidance"]),`<div class="small">${t("uricGuide")}</div>`)}
+ ${card(t("appt"),`<button class="btn soft sm" onclick="go('appt')">${t("appt")} →</button>`)}`;
+ const c=colors();mkChart("cU",{type:"line",data:{labels:pts.map(p=>fmtDate(p.date)),datasets:[{label:"mg/dL",data:pts.map(p=>p.val),borderColor:c.a,backgroundColor:c.a,tension:.2,pointRadius:5},{label:t("refHigh"),data:pts.map(p=>p.hi),borderColor:c.m,borderDash:[4,4],pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false}})};
+
+/* ============ SYMPTOMS ============ */
+VIEWS.sym=(el)=>{const list=st.sym.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,40);const red=st.sym.filter(s=>s.date>=dayShift(-2)&&((["weak","numb"].includes(s.type)&&s.sev>=4)||(s.type==="vomit"&&s.sev>=3)));
+ el.innerHTML=`${red.length?`<div class="notice bad small">${t("urgent")}</div>`:""}<button class="btn primary block" onclick="addSym()">+ ${t("add")}</button>
+ ${card(t("week"),`<div class="chartbox"><canvas id="cSy"></canvas></div>`)}
+ <div class="list">${list.map(s=>`<div class="item"><div class="t"><b>${symName(s.type)} <span class="pill ${s.sev>=4?"bad":s.sev>=2?"warn":"good"}">${s.sev}/5</span></b><span class="num">${s.date} ${s.note?"· "+esc(s.note):""}</span></div><button class="btn sm danger" onclick="st.sym=st.sym.filter(x=>x.id!=='${s.id}');save();render()">✕</button></div>`).join("")||`<div class="muted">${t("noEntries")}</div>`}</div>`;
+ const days=[...Array(7)].map((_,i)=>dayShift(i-6));const c=colors();const types=[...new Set(st.sym.filter(s=>s.date>=days[0]).map(s=>s.type))].slice(0,5);const pal=[c.a,c.g,c.w,c.b,c.m];
+ mkChart("cSy",{type:"line",data:{labels:days.map(fmtDate),datasets:types.map((ty,i)=>({label:symName(ty),data:days.map(dd=>{const x=st.sym.filter(s=>s.type===ty&&s.date===dd);return x.length?Math.max(...x.map(s=>s.sev)):null}),borderColor:pal[i],backgroundColor:pal[i],spanGaps:true,tension:.2}))},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:5,ticks:{stepSize:1}}}}})};
+function addSym(){let sev=2;sheet(`<h2>${t("sym")}</h2>${field(t("sym"),sel("sy",SYMPTOMS.map(x=>[x[0],t([x[1],x[2]])]),"weak"))}<div class="grid2">${field(t("date"),`<input id="sd" type="date" value="${today()}">`)}</div><div class="muted small">${t("severity")}</div><div class="sev" id="sv">${[1,2,3,4,5].map(n=>`<button class="${n===sev?"on":""}" data-s="${n}">${n}</button>`).join("")}</div>${field(t("notes"),`<input id="sn">`)}<button class="btn primary block" id="ssv">${t("save")}</button>`,o=>{o.querySelectorAll("#sv button").forEach(b=>b.onclick=()=>{sev=+b.dataset.s;o.querySelectorAll("#sv button").forEach(x=>x.classList.toggle("on",x===b))});o.querySelector("#ssv").onclick=()=>{st.sym.push({id:uid(),type:o.querySelector("#sy").value,date:o.querySelector("#sd").value||today(),sev,note:o.querySelector("#sn").value});save();closeSheet();render()}})}
+
+/* ============ MEAL PLANNER ============ */
+let planGoal="hp",plan=null,planWeek=false;
+VIEWS.plan=(el)=>{const p=st.profile;const bari=p.surgery&&p.surgery!=="none";const stage=bari?p.stage:"regular";
+ el.innerHTML=`<div class="notice info small">${t("planNote")} ${bari?t(["مرحلہ:","Stage:"])+" <b>"+t(stage)+"</b>":""}</div>
+ <div class="chips"><span class="chip ${planGoal==="hp"?"on":""}" onclick="planGoal='hp';render()">${t("hp")}</span><span class="chip ${planGoal==="lp"?"on":""}" onclick="planGoal='lp';render()">${t("lp")}</span><span class="chip ${!planWeek?"on":""}" onclick="planWeek=false;render()">${t("daily")}</span><span class="chip ${planWeek?"on":""}" onclick="planWeek=true;render()">${t("weekly")}</span></div>
+ <button class="btn primary block" onclick="genPlan()">${t("generate")}</button>
+ <div id="planOut">${plan?renderPlan():""}</div>`};
+function pool(slot){const p=st.profile;const bari=p.surgery&&p.surgery!=="none";const stage=bari?p.stage:"regular";const al=(p.allergies||"").toLowerCase();
+ let c=MEALS.filter(m=>m[0]===stage&&m[2]===slot&&(stage!=="regular"||m[1].includes(planGoal)));if(stage!=="regular")c=c.length?c:MEALS.filter(m=>m[0]===stage&&m[2]===slot);
+ c=c.filter(m=>!m[3].some(([id])=>{const f=FOODMAP[id];const bad=[["dairy","milk|دودھ|lactose|لیکٹوز"],["egg","egg|انڈ"],["nuts","nut|میوہ|peanut|مونگ"],["fish","fish|مچھلی|shrimp|جھینگ"]];return bad.some(([cat,re])=>f.cat===cat&&new RegExp(re).test(al))}));
+ if(planGoal==="lp")c=c.filter(m=>!m[3].some(([id])=>FOODMAP[id].pur!=null&&FOODMAP[id].pur>=150));return c}
+function genDay(){const o={};["breakfast","lunch","dinner","snack"].forEach(s=>{const c=pool(s);o[s]=c.length?c[Math.floor(Math.random()*c.length)][3].map(([id,g])=>({id,g})):[]});return o}
+function genPlan(){plan=planWeek?[...Array(7)].map(genDay):[genDay()];render()}
+function mealNut(items){const o={kcal:0,p:0,c:0,f:0,ca:0,fe:0,pur:0};items.forEach(i=>{const n=calc.nutr(i.id,i.g);["kcal","p","c","f","ca","fe"].forEach(k=>o[k]+=n[k]);if(n.pur)o.pur+=n.pur});return o}
+function renderPlan(){const T=targets();return plan.map((day,di)=>{const dt=Object.values(day).flat();const dn=mealNut(dt);return `<div class="card"><h2>${plan.length>1?t(["دن","Day"])+" "+(di+1):t("daily")} <span class="pill accent num">${r0(dn.kcal)} kcal · P ${r0(dn.p)} g</span></h2><div class="muted small num">${t(["ہدف","Target"])}: ${T.kcal} kcal · ${T.p} g · ${t("purine")} ${r0(dn.pur)} mg (${t(["معلوم ڈیٹا","known data"])})</div>
+ ${["breakfast","lunch","dinner","snack"].map(s=>{const m=mealNut(day[s]);return `<div style="margin-top:8px"><div class="row spread"><b>${t(s)}</b><span class="row"><span class="num small muted">${r0(m.kcal)} kcal · P ${r1(m.p)} · C ${r1(m.c)} · F ${r1(m.f)} · Ca ${r0(m.ca)} · Fe ${r1(m.fe)}</span><button class="btn sm" onclick="replaceMeal(${di},'${s}')">${t("replace")}</button><button class="btn sm soft" onclick="planToDiary(${di},'${s}')">${t("addToDiary")}</button></span></div>
+ <div class="list">${day[s].map((it,ii)=>{const f=FOODMAP[it.id];return `<div class="item"><div class="t"><b>${fn(f)} ${f.est?`<span class="pill warn">${t("estimate")}</span>`:""}</b></div><input type="number" style="width:80px" value="${it.g}" min="5" max="1000" onchange="plan[${di}]['${s}'][${ii}].g=+this.value||${it.g};document.getElementById('planOut').innerHTML=renderPlan()"> g</div>`}).join("")||`<div class="muted small">${t(["اس مرحلے/الرجی کے لیے کوئی موزوں کھانا نہیں ملا","No suitable template for this stage/allergy"])}</div>`}</div></div>`}).join("")}</div>`}).join("")}
+function replaceMeal(di,s){const c=pool(s);if(!c.length)return;const cur=JSON.stringify(plan[di][s].map(x=>x.id));const alt=c.filter(m=>JSON.stringify(m[3].map(x=>x[0]))!==cur);const pick=(alt.length?alt:c)[Math.floor(Math.random()*(alt.length?alt:c).length)];plan[di][s]=pick[3].map(([id,g])=>({id,g}));document.getElementById("planOut").innerHTML=renderPlan()}
+function planToDiary(di,s){const d=today();st.food[d]=st.food[d]||[];plan[di][s].forEach(it=>st.food[d].push({uid:uid(),id:it.id,g:it.g,meal:s}));save();toast(t(["ڈائری میں شامل ہو گیا","Added to diary"]))}
+
+/* ============ ASSISTANT (rule-based, local) ============ */
+VIEWS.ai=(el)=>{el.innerHTML=`<div class="notice info small">${t("aiIntro")}</div><div class="chips">${["q1","q2","q3","q4","q5","q6"].map(q=>`<span class="chip" onclick="askAI(t('${q}'))">${t(q)}</span>`).join("")}</div>
+ <div class="card chat" id="chat">${st.chat.map(m=>`<div class="bubble ${m.r}">${esc(m.m)}</div>`).join("")||`<div class="muted">${t("noEntries")}</div>`}</div>
+ <div class="row"><input id="aiq" placeholder="${t("ask")}" style="flex:1"><button class="btn primary" onclick="askAI(document.getElementById('aiq').value)">${t("send")}</button><button class="btn sm" onclick="st.chat=[];save();render()">✕</button></div>
+ <div class="muted small">${t(["یہ اسسٹنٹ آف لائن قواعد پر چلتا ہے اور ڈاکٹر یا بیریاٹرک ڈائٹیشن کا متبادل نہیں۔","This assistant runs on offline rules and does not replace a doctor or bariatric dietitian."])}</div>`;
+ const c=document.getElementById("chat");c.scrollTop=c.scrollHeight;document.getElementById("aiq").onkeydown=e=>{if(e.key==="Enter")askAI(e.target.value)}};
+function askAI(q){q=(q||"").trim();if(!q)return;st.chat.push({r:"me",m:q});st.chat.push({r:"ai",m:answer(q)});if(st.chat.length>40)st.chat=st.chat.slice(-40);save();render()}
+function answer(q){const ql=q.toLowerCase();const U=st.lang==="ur";const T=targets(),d=today(),tot=dayTotals(d);const p=st.profile;
+ const disc=U?"\n\n(یہ تعلیمی معلومات ہے — تشخیص یا علاج نہیں۔ فیصلے ڈاکٹر/ڈائٹیشن کے ساتھ کریں۔)":"\n\n(Educational information only, not diagnosis or treatment. Decide with your doctor/dietitian.)";
+ const urgentWords=/قے|vomit|چکر|confus|الجھن|چل نہیں|walk|بے ہوش|faint|خون|blood|سینے|chest/;
+ if(urgentWords.test(ql)&&/شدید|بہت|severe|persist|مسلسل|لگاتار/.test(ql))return t("urgent");
+ if(/nutrition|غذائی|آج|today|کیلور|calor/.test(ql)&&!/protein|پروٹین/.test(ql)||q===t("q1")){const w=waterTotal(d);return (U?`آج تک: کیلوریز ${r0(tot.kcal)} / ${T.kcal}، پروٹین ${r0(tot.p)} / ${T.p} گرام، کاربوہائیڈریٹ ${r0(tot.c)} گرام، چکنائی ${r0(tot.f)} گرام، فائبر ${r1(tot.fib)} گرام، کیلشیم ${r0(tot.ca)} ملی گرام، آئرن ${r1(tot.fe)} ملی گرام، پانی ${w} / ${T.water} ملی لیٹر۔\n`:`So far today: calories ${r0(tot.kcal)} / ${T.kcal}, protein ${r0(tot.p)} / ${T.p} g, carbs ${r0(tot.c)} g, fat ${r0(tot.f)} g, fiber ${r1(tot.fib)} g, calcium ${r0(tot.ca)} mg, iron ${r1(tot.fe)} mg, water ${w} / ${T.water} ml.\n`)+(tot.p<T.p*0.6?(U?"پروٹین ہدف سے کافی کم ہے — پروٹین والی خوراک پہلے کھائیں۔":"Protein is well below target; eat protein foods first."):(U?"پروٹین ٹھیک جا رہا ہے۔":"Protein is on track."))+(w<T.water*0.5&&new Date().getHours()>14?(U?" پانی بھی کم ہے۔":" Fluids are also low."):"")+disc}
+ if(/lab|لیب|رپورٹ|result|نتیج|ٹیسٹ|test/.test(ql)||q===t("q2")){const latest={};st.labs.slice().sort((a,b)=>a.date.localeCompare(b.date)).forEach(l=>latest[l.test]=l);const ls=Object.values(latest);if(!ls.length)return U?"ابھی کوئی لیب رپورٹ درج نہیں۔ ٹیسٹ رپورٹس والے حصے میں تاریخ، نتیجہ اور لیب کی رینج درج کریں۔":"No lab results entered yet. Add date, result and the lab's reference range in Lab results.";
+  const expl={hb:["خون میں آکسیجن لے جانے والا پروٹین؛ کم ہو تو تھکن ہو سکتی ہے","oxygen-carrying protein; low levels can cause fatigue"],ferritin:["جسم میں آئرن کے ذخیرے کا پیمانہ","a measure of the body's iron stores"],b12:["اعصاب اور خون کے لیے ضروری وٹامن؛ بائی پاس کے بعد اکثر چیک کیا جاتا ہے","vitamin needed for nerves and blood; often checked after bypass"],vitd:["ہڈیوں اور کیلشیم جذب کرنے کے لیے","needed for bones and calcium absorption"],uric:["پیورین کے ٹوٹنے سے بننے والا مادہ","a waste product from purine breakdown"],hba1c:["پچھلے ۲–۳ مہینوں کی اوسط شوگر","average blood sugar over the past 2–3 months"],albumin:["خون کا اہم پروٹین؛ غذائی حالت کا اشارہ","main blood protein; reflects nutritional status"],ca:["ہڈیوں اور پٹھوں کے لیے معدنیات","mineral for bones and muscles"],pth:["کیلشیم کنٹرول کرنے والا ہارمون","hormone that regulates calcium"],mg:["پٹھوں اور اعصاب کے لیے معدنیات","mineral for muscles and nerves"],folate:["خون بنانے کے لیے وٹامن","vitamin needed to make blood cells"],creat:["گردوں کے کام کا اشارہ","indicator of kidney function"],alt:["جگر کا انزائم","liver enzyme"],ldl:["'برا' کولیسٹرول","'bad' cholesterol"],tg:["خون کی چکنائی","blood fats"]};
+  return ls.map(l=>{const e=expl[l.test];return `• ${labName(l.test)} (${l.date}): ${l.val} ${l.unit} — ${l.lo==null&&l.hi==null?(U?"لیب رینج درج نہیں":"no lab range entered"):outRange(l)?(U?"آپ کی لیب کی رینج سے باہر":"outside your lab's range")+` (${l.lo??"?"}–${l.hi??"?"})`:(U?"لیب رینج میں":"within lab range")}${e?"۔ "+(U?e[0]:e[1]):""}`}).join("\n")+(U?"\n\nرینج سے باہر نتائج کا مطلب ہمیشہ بیماری نہیں ہوتا؛ ڈاکٹر سے بات کریں۔":"\n\nOut-of-range results do not always mean disease; discuss with your doctor.")+disc}
+ if(/protein|پروٹین/.test(ql)||q===t("q3")){const al=(p.allergies||"").toLowerCase();const top=FOODS.filter(f=>["meat","fish","egg","dal","dairy","supp"].includes(f.cat)&&!f.est&&!(f.cat==="dairy"&&/دودھ|milk|lactose/.test(al))&&!(f.cat==="egg"&&/egg|انڈ/.test(al))).sort((a,b)=>b.p-a.p).slice(0,8);return (U?`پروٹین کے اچھے ذرائع (فی ۱۰۰ گرام):\n`:`Good protein sources (per 100 g):\n`)+top.map(f=>`• ${fn(f)}: ${f.p} g`).join("\n")+(p.surgery&&p.surgery!=="none"?(U?"\n\nبیریاٹرک: نرم، کم چکنائی پروٹین پہلے کھائیں، چھوٹے حصے، آہستہ چبائیں۔":"\n\nBariatric: eat soft, low-fat protein first, small portions, chew slowly."):"")+disc}
+ if(/symptom|علامت|ہفت|week|ڈائری|diary|trend|رجحان/.test(ql)||q===t("q4")){const xs=st.sym.filter(s=>s.date>=dayShift(-6));if(!xs.length)return U?"پچھلے ۷ دن میں کوئی علامت درج نہیں۔":"No symptoms logged in the last 7 days.";const by={};xs.forEach(s=>{by[s.type]=by[s.type]||[];by[s.type].push(s.sev)});return (U?"پچھلے ۷ دن:\n":"Last 7 days:\n")+Object.entries(by).map(([k,v])=>`• ${symName(k)}: ${v.length} ${U?"بار":"times"}, ${U?"اوسط شدت":"avg severity"} ${r1(v.reduce((a,b)=>a+b,0)/v.length)}/5`).join("\n")+(Object.values(by).some(v=>Math.max(...v)>=4)?"\n\n"+t("urgent"):"")+disc}
+ if(/doctor|ڈاکٹر|سوال|question|appoint|اپائنٹ/.test(ql)||q===t("q5")){const qs=[];const latest={};st.labs.forEach(l=>latest[l.test]=l);Object.values(latest).filter(outRange).forEach(l=>qs.push(U?`میرا ${labName(l.test)} ${l.val} ${l.unit} آیا — کیا اس پر کچھ کرنا چاہیے؟`:`My ${labName(l.test)} was ${l.val} ${l.unit}. Should anything be done?`));
+  const sy=[...new Set(st.sym.filter(s=>s.date>=dayShift(-13)).map(s=>s.type))];sy.forEach(k=>qs.push(U?`مجھے ${symName(k)} ہو رہی ہے — کیا یہ میری غذا یا سپلیمنٹ سے متعلق ہو سکتی ہے؟`:`I have been having ${symName(k)}. Could it relate to diet or supplements?`));
+  if(p.surgery&&p.surgery!=="none")qs.push(U?"میرا پروٹین، کیلوریز اور پانی کا ہدف کیا ہونا چاہیے؟":"What should my protein, calorie and fluid targets be?",U?"کون سے سپلیمنٹ، کتنی خوراک اور کس وقت؟":"Which supplements, what dose and when?");
+  qs.push(U?"اگلے لیب ٹیسٹ کب کرانے ہیں؟":"When should the next lab tests be done?",U?"کیا میری کوئی دوا غذا کے ساتھ ٹکراتی ہے؟":"Does any of my medicine interact with food?");return (U?"ڈاکٹر سے پوچھنے کے لیے:\n":"Questions for your doctor:\n")+qs.map((x,i)=>`${i+1}. ${x}`).join("\n")}
+ if(/purine|پیورین|uric|یورک|gout|گاؤٹ|alternative|متبادل/.test(ql)||q===t("q6")){const low=FOODS.filter(f=>f.pur!=null&&f.pur<100).map(f=>fn(f));const high=FOODS.filter(f=>f.pur!=null&&f.pur>=150).map(f=>fn(f));return (U?`زیادہ پیورین (محدود رکھیں): ${high.join("، ")}\nکم پیورین متبادل: ${low.join("، ")}، نیز دالیں، سبزیاں، دہی، انڈے عموماً کم پیورین سمجھے جاتے ہیں۔\n`:`Higher purine (limit): ${high.join(", ")}\nLow-purine alternatives: ${low.join(", ")}; dals, vegetables, yogurt and eggs are generally considered low in purines.\n`)+t("uricGuide")+disc}
+ if(/meal|کھان|plan|پلان/.test(ql))return U?"کھانے کا پلان والے حصے میں 'پلان بنائیں' دبائیں — یہ آپ کے مرحلے، ہدف اور الرجی کے مطابق پلان بناتا ہے اور آپ کھانے بدل یا مقدار ایڈجسٹ کر سکتے ہیں۔":"Open Meal planner and tap Generate; it uses your stage, goal and allergies, and you can swap meals or adjust portions.";
+ if(/water|پانی|fluid/.test(ql))return (U?`آج پانی ${waterTotal(d)} / ${T.water} ملی لیٹر۔`:`Water today ${waterTotal(d)} / ${T.water} ml.`)+disc;
+ const f=FOODS.find(f=>ql.includes(f.en.split(",")[0].toLowerCase())||ql.includes(f.ur.split(" ")[0]));if(f)return `${fn(f)} (${t("perg")}): ${f.kcal} kcal, ${U?"پروٹین":"protein"} ${f.p} g, ${U?"کاربس":"carbs"} ${f.c} g, ${U?"چکنائی":"fat"} ${f.f} g, ${U?"فائبر":"fiber"} ${f.fib} g, Ca ${f.ca} mg, Fe ${f.fe} mg, Mg ${f.mg} mg, K ${f.k} mg, Na ${f.na} mg. ${t("src")}: ${f.src}${f.est?" ("+t("estimate")+")":""}.`;
+ return U?"میں اس سوال کا جواب اپنے ڈیٹا سے نہیں دے سکتا۔ میں بتا سکتا ہوں: آج کی غذائیت، لیب رپورٹس کی وضاحت، پروٹین کے ذرائع، علامات کا خلاصہ، ڈاکٹر کے لیے سوالات، یا کسی کھانے کی غذائی معلومات (نام لکھیں)۔ طبی مشورے کے لیے ڈاکٹر سے رجوع کریں۔":"I can't answer that from your data. I can explain today's nutrition, lab results, protein sources, symptom trends, doctor questions, or a food's nutrients (type its name). For medical advice, please see your doctor."}
+
+/* ============ APPOINTMENTS ============ */
+VIEWS.appt=(el)=>{const list=st.appts.slice().sort((a,b)=>a.date.localeCompare(b.date));
+ el.innerHTML=card(t("appt"),`${field(t("apptTitle"),`<input id="at">`)}<div class="grid2">${field(t("date"),`<input id="ad" type="date" value="${today()}">`)}${field(t(["وقت","Time"]),`<input id="atm" type="time">`)}</div>${field(t("notes"),`<textarea id="an"></textarea>`)}<button class="btn primary block" onclick="addAppt()">${t("save")}</button>`)
+ +`<div class="list">${list.map(a=>`<div class="item"><div class="t"><b>${esc(a.title)} ${a.date<today()?`<span class="pill">${t(["گزر گئی","past"])}</span>`:""}</b><span class="num">${a.date} ${a.time||""} ${a.note?"· "+esc(a.note):""}</span></div><button class="btn sm danger" onclick="st.appts=st.appts.filter(x=>x.id!=='${a.id}');save();render()">✕</button></div>`).join("")||`<div class="muted">${t("noEntries")}</div>`}</div>`};
+function addAppt(){const g=i=>document.getElementById(i).value;if(!g("at")||!g("ad")){toast(t(["عنوان اور تاریخ ضروری","Title and date required"]));return}st.appts.push({id:uid(),title:g("at"),date:g("ad"),time:g("atm"),note:g("an")});save();render()}
+
+/* ============ REPORTS ============ */
+VIEWS.reports=(el)=>{el.innerHTML=`<div class="notice info small">${t(["رپورٹ بنائیں، پھر 'کاپی کریں' دبا کر واٹس ایپ/ای میل میں ڈاکٹر کو بھیجیں۔ CSV ٹیکسٹ کو Excel/Google Sheets میں پیسٹ کیا جا سکتا ہے۔","Generate a report, then Copy and paste it into WhatsApp/email for your doctor. CSV text can be pasted into Excel/Google Sheets."])}</div>
+ <div class="menu">${["rep1","rep2","rep3","rep4","rep5","rep6"].map((k,i)=>`<button onclick="showReport(${i+1})">${t(k)}</button>`).join("")}</div><div id="repOut"></div>`};
+function showReport(n){const U=st.lang==="ur";const p=st.profile;const hdr=`Smart Health report — ${p.name} — ${today()}\n`;let txt="",csv="";const D=(k)=>[...Array(k)].map((_,i)=>dayShift(i-(k-1)));
+ if(n===1){const d=today(),tot=dayTotals(d),T=targets();txt=hdr+`Daily nutrition ${d}\n`+NUTR.map(x=>`${x[2]}: ${r1(tot[x[0]])} ${x[3]}`).join("\n")+`\nWater: ${waterTotal(d)} ml\nTargets: ${T.kcal} kcal, ${T.p} g protein, ${T.water} ml\n\nMeals:\n`+(st.food[d]||[]).map(e=>{const nn=calc.nutr(e.id,e.g);return `${e.meal}: ${FOODMAP[e.id].en} ${e.g} g (${r0(nn.kcal)} kcal, P ${r1(nn.p)} g)`}).join("\n");csv="meal,food,grams,kcal,protein_g,carbs_g,fat_g,fiber_g,calcium_mg,iron_mg,magnesium_mg,potassium_mg,sodium_mg\n"+(st.food[d]||[]).map(e=>{const nn=calc.nutr(e.id,e.g);return [e.meal,`"${FOODMAP[e.id].en}"`,e.g,...NUTR.map(x=>r1(nn[x[0]]))].join(",")}).join("\n")}
+ if(n===2){const ds=D(7);txt=hdr+"Weekly nutrition\n"+ds.map(d=>{const tt=dayTotals(d);return `${d}: ${r0(tt.kcal)} kcal, P ${r0(tt.p)} g, C ${r0(tt.c)} g, F ${r0(tt.f)} g, fiber ${r1(tt.fib)} g, Ca ${r0(tt.ca)} mg, Fe ${r1(tt.fe)} mg, water ${waterTotal(d)} ml`}).join("\n");csv="date,kcal,protein_g,carbs_g,fat_g,fiber_g,calcium_mg,iron_mg,magnesium_mg,potassium_mg,sodium_mg,water_ml\n"+ds.map(d=>{const tt=dayTotals(d);return [d,...NUTR.map(x=>r1(tt[x[0]])),waterTotal(d)].join(",")}).join("\n")}
+ if(n===3){const ws=st.weights.filter(w=>w.date>=dayShift(-30)).sort((a,b)=>a.date.localeCompare(b.date));txt=hdr+"Weight (last 30 days)\n"+ws.map(w=>`${w.date}: ${w.w} kg`).join("\n")+(ws.length>1?`\nChange: ${r1(ws[ws.length-1].w-ws[0].w)} kg`:"");csv="date,weight_kg\n"+ws.map(w=>`${w.date},${w.w}`).join("\n")}
+ if(n===4){const ds=D(30);const rows=[];ds.forEach(d=>Object.entries(st.suppLog[d]||{}).forEach(([k,v])=>{if(!v)return;const [id,tm]=k.split("@");const s=st.supps.find(x=>x.id===id);rows.push([d,s?s.name:id,tm,v])}));const tk=rows.filter(r=>r[3]==="taken").length;txt=hdr+`Supplement adherence (30 days): ${tk} taken / ${rows.length} logged (${rows.length?r0(tk/rows.length*100):0}%)\nSupplements: `+st.supps.map(s=>`${s.name} [${s.ingr}] ${s.dose||""} @ ${(s.times||[]).join(" ")}`).join("; ")+"\n"+rows.map(r=>r.join(" | ")).join("\n");csv="date,supplement,time,status\n"+rows.map(r=>`${r[0]},"${r[1]}",${r[2]},${r[3]}`).join("\n")}
+ if(n===5){const ls=st.labs.slice().sort((a,b)=>a.date.localeCompare(b.date));txt=hdr+"Lab history\n"+ls.map(l=>`${l.date} ${LABS.find(x=>x[0]===l.test)[2]}: ${l.val} ${l.unit} (lab range ${l.lo??"?"}–${l.hi??"?"})${outRange(l)?" *outside range*":""} ${l.note||""}`).join("\n");csv="date,test,result,unit,ref_low,ref_high,flag,notes\n"+ls.map(l=>`${l.date},${l.test},${l.val},${l.unit},${l.lo??""},${l.hi??""},${outRange(l)?"OUT":"IN"},"${(l.note||"").replace(/"/g,"'")}"`).join("\n")}
+ if(n===6){const ss=st.sym.filter(s=>s.date>=dayShift(-30)).sort((a,b)=>a.date.localeCompare(b.date));txt=hdr+"Symptoms (30 days)\n"+ss.map(s=>`${s.date} ${SYMPTOMS.find(x=>x[0]===s.type)[2]}: ${s.sev}/5 ${s.note||""}`).join("\n");csv="date,symptom,severity,notes\n"+ss.map(s=>`${s.date},${s.type},${s.sev},"${(s.note||"").replace(/"/g,"'")}"`).join("\n")}
+ txt+="\n\nAll values are estimates for discussion with a clinician.";
+ document.getElementById("repOut").innerHTML=`<div class="card"><div class="row"><button class="btn primary sm" onclick="copyTxt(document.getElementById('rtxt').textContent)">${t("copy")} ${t("text")}</button><button class="btn sm" onclick="copyTxt(document.getElementById('rcsv').textContent)">${t("copy")} CSV</button></div><div class="report" id="rtxt">${esc(txt)}</div><details><summary>CSV</summary><div class="report" id="rcsv">${esc(csv)}</div></details></div>`}
+function copyTxt(s){const done=()=>toast(t("copied"));if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(s).then(done).catch(()=>fallback())}else fallback();function fallback(){const el=document.getElementById("rtxt")||document.body;const r=document.createRange();r.selectNodeContents(el);const sl=getSelection();sl.removeAllRanges();sl.addRange(r);toast(t(["متن منتخب ہے — لانگ پریس کر کے کاپی کریں","Text selected; long-press to copy"]))}}
+
+/* ============ SETTINGS / MORE / PRIVACY ============ */
+VIEWS.more=(el)=>{el.innerHTML=`<div class="menu">${MORE.map(m=>`<button onclick="go('${m[0]}')">${ICON(m[1])}<span>${t(m[0])}</span></button>`).join("")}</div>`};
+VIEWS.privacy=(el)=>{el.innerHTML=card(t("privacy"),`<div style="white-space:pre-wrap" class="small">${t("privacyText")}</div>`)};
+VIEWS.settings=(el)=>{const n=st.notif;el.innerHTML=card(t("settings"),`<div class="grid2">${field(t("lang"),sel("sLang",[["ur","اردو"],["en","English"]],st.lang))}${field(t("theme"),sel("sTheme",[["system",t("system")],["light",t("light")],["dark",t("dark")]],st.theme))}</div>`)
+ +card(t("notif"),`<div class="muted small">${t("notifNote")}</div><div class="row" style="margin-top:6px"><button class="btn soft sm" onclick="askNotif()">${t("allowNotif")}</button><span class="pill ${("Notification" in window)&&Notification.permission==="granted"?"good":"warn"}">${("Notification" in window)?Notification.permission:"n/a"}</span></div><div class="grid2" style="margin-top:8px">${field(t("waterEvery"),`<input id="nW" type="number" min="0" value="${n.waterMin}">`)}${field(t("mealTimes"),`<input id="nM" value="${esc(n.meals)}">`)}</div><label class="row" style="margin-top:6px"><input type="checkbox" id="nOn" ${n.enabled?"checked":""} style="width:auto"> ${t(["یاد دہانیاں فعال","Reminders on"])}</label>`)
+ +`<button class="btn primary block" onclick="saveSettings()">${t("save")}</button>`
+ +card(t("backup"),`<div class="row"><button class="btn soft" onclick="copyTxt(JSON.stringify(st))">${t("exportJ")}</button><label class="btn">${t("importFile")}<input type="file" accept=".json,application/json" id="impF" class="hidden"></label></div><textarea id="impT" placeholder="${t("pasteHere")}"></textarea><button class="btn" onclick="importJSON(document.getElementById('impT').value)">${t("restore")}</button>`)
+ +card(t("installTitle"),`<div class="small">${t("installHow")}</div>`)
+ +`<button class="btn danger block" onclick="confirmBox(t('wipeConfirm'),t('yesDelete'),()=>{st=defaultState();save();go('home')})">${t("wipe")}</button><div class="muted small">Smart Health v1.0 · ${t("privacy")}: <a href="#privacy">${t("privacy")}</a></div>`;
+ document.getElementById("impF").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>importJSON(r.result);r.readAsText(f)}};
+function saveSettings(){st.lang=document.getElementById("sLang").value;st.theme=document.getElementById("sTheme").value;st.notif={enabled:document.getElementById("nOn").checked,waterMin:+document.getElementById("nW").value||0,meals:document.getElementById("nM").value};save();render();toast(t(["محفوظ ہو گیا","Saved"]))}
+function importJSON(s){try{const o=JSON.parse(s);if(!o||typeof o!=="object"||!("food" in o))throw 0;st=Object.assign(defaultState(),o);save();toast(t(["ڈیٹا بحال ہو گیا","Data restored"]));go("home")}catch(e){toast(t(["JSON درست نہیں","Invalid JSON"]))}}
+function askNotif(){if(!("Notification" in window)){toast("n/a");return}Notification.requestPermission().then(()=>render())}
+/* in-app reminders (only while open) */
+let lastWaterN=Date.now(),firedMeals={},firedSupp={};
+setInterval(()=>{if(!st.notif.enabled||!st.profile)return;const now=new Date(),hm=now.toTimeString().slice(0,5),d=today();const fire=(key,msg)=>{if(("Notification" in window)&&Notification.permission==="granted"){try{new Notification("Smart Health",{body:msg})}catch(e){}}toast(msg)};
+ if(st.notif.waterMin>0&&Date.now()-lastWaterN>st.notif.waterMin*60000){lastWaterN=Date.now();fire("w",t(["پانی پینے کا وقت 💧","Time to drink water 💧"]))}
+ st.notif.meals.split(/[,، ]+/).forEach(tm=>{if(tm===hm&&!firedMeals[d+tm]){firedMeals[d+tm]=1;fire("m",t(["کھانے کا وقت — ڈائری میں درج کریں","Meal time; log it in the diary"]))}});
+ st.supps.forEach(s=>(s.times||[]).forEach(tm=>{if(tm===hm&&!firedSupp[d+s.id+tm]){firedSupp[d+s.id+tm]=1;fire("s",t(["سپلیمنٹ:","Supplement:"])+" "+s.name)}}));
+ st.appts.forEach(a=>{if(a.date===d&&a.time===hm&&!firedSupp[d+a.id]){firedSupp[d+a.id]=1;fire("a",t(["اپائنٹمنٹ:","Appointment:"])+" "+a.title)}})},30000);
+
+/* ============ BOOT ============ */
+load();
+document.getElementById("langBtn").onclick=()=>{st.lang=st.lang==="ur"?"en":"ur";save();render()};
+document.getElementById("themeBtn").onclick=()=>{st.theme=st.theme==="dark"?"light":"dark";save();render()};
+window.addEventListener("hashchange",()=>{charts.splice(0).forEach(c=>{try{c.destroy()}catch(e){}});render()});
+const _render=render;render=function(){charts.splice(0).forEach(c=>{try{c.destroy()}catch(e){}});_render()};
+render();
+</script>
+</body></html>
